@@ -1,16 +1,19 @@
-import sqlite3
 import os
 import re
 import sys
 import math
 import uuid
-import unicodedata
 import hashlib
 import logging
+from db import get_db
 from logging.handlers import RotatingFileHandler
+from views.auth import auth_bp
+from utils import is_setup_needed
+from db import init_app as init_db_app
 from flask_wtf.csrf import CSRFProtect
 from flask import (Flask, render_template, request, redirect, url_for,
                    send_file, jsonify, g, flash, session, send_from_directory)
+from utils import login_required, admin_required, limit_objets_required
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
 import shutil
@@ -32,14 +35,18 @@ class PDFWithFooter(FPDF):
 
 # --- CONFIGURATION DE L'APPLICATION ---
 app = Flask(__name__)
+init_db_app(app)
 app.config['SECRET_KEY'] = os.environ.get('GMLCL_SECRET_KEY', 'une-cle-temporaire-pour-le-developpement-a-changer')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 csrf = CSRFProtect(app)
+# ENREGISTREMENT DES BLUEPRINTS
+app.register_blueprint(auth_bp)
 USER_DATA_PATH = os.path.join(os.environ.get('APPDATA'), 'GMLCL')
 os.makedirs(USER_DATA_PATH, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = os.path.join(USER_DATA_PATH, 'uploads', 'images')
 app.config['FDS_UPLOAD_FOLDER'] = os.path.join(USER_DATA_PATH, 'uploads', 'fds')
 DATABASE = os.path.join(USER_DATA_PATH, 'base.db')
+app.config['DATABASE'] = DATABASE
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['FDS_UPLOAD_FOLDER'], exist_ok=True)
 
@@ -59,155 +66,6 @@ if not app.debug:
 ITEMS_PER_PAGE = 10
 CLE_PRO_SECRETE = os.environ.get('GMLCL_PRO_KEY', 'valeur-par-defaut-si-non-definie')
 
-# --- GESTION CENTRALE DE LA BASE DE DONNÉES ---
-def strip_accents(text):
-    """Fonction pour retirer les accents d'une chaîne."""
-    return ''.join(c for c in unicodedata.normalize('NFD', text)
-                   if unicodedata.category(c) != 'Mn')
-
-def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row
-        db.create_function("unaccent", 1, strip_accents)
-    return db
-
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
-
-def init_db():
-    """Crée les tables de la base de données selon le schéma mis à jour si elle n'existe pas."""
-    if not os.path.exists(DATABASE):
-        app.logger.info("Le fichier de base de données n'existe pas. Création avec le nouveau schéma...")
-        try:
-            db = sqlite3.connect(DATABASE)
-            
-            schema_script = """
-                BEGIN TRANSACTION;
-                CREATE TABLE IF NOT EXISTS "armoires" (
-                    "id"	INTEGER, "nom" TEXT NOT NULL UNIQUE, PRIMARY KEY("id" AUTOINCREMENT)
-                );
-                CREATE TABLE IF NOT EXISTS "budgets" (
-                    "id"	INTEGER, "annee" INTEGER NOT NULL UNIQUE, "montant_initial"	REAL NOT NULL, "cloture" BOOLEAN NOT NULL DEFAULT 0, PRIMARY KEY("id" AUTOINCREMENT)
-                );
-                CREATE TABLE IF NOT EXISTS "categories" (
-                    "id"	INTEGER, "nom" TEXT NOT NULL UNIQUE, PRIMARY KEY("id" AUTOINCREMENT)
-                );
-                CREATE TABLE IF NOT EXISTS "fournisseurs" (
-                    "id"	INTEGER, "nom" TEXT NOT NULL UNIQUE, "site_web" TEXT, "logo" TEXT, PRIMARY KEY("id" AUTOINCREMENT)
-                );
-                CREATE TABLE IF NOT EXISTS "depenses" (
-                    "id" INTEGER, "budget_id" INTEGER NOT NULL, "fournisseur_id" INTEGER, "contenu" TEXT NOT NULL, "montant" REAL NOT NULL, "date_depense" DATE NOT NULL, "est_bon_achat" INTEGER NOT NULL DEFAULT 0, PRIMARY KEY("id" AUTOINCREMENT), FOREIGN KEY("budget_id") REFERENCES "budgets"("id"), FOREIGN KEY("fournisseur_id") REFERENCES "fournisseurs"("id") ON DELETE SET NULL
-                );
-                CREATE TABLE IF NOT EXISTS "echeances" (
-                    "id" INTEGER, "intitule" TEXT NOT NULL, "date_echeance" DATE NOT NULL, "details" TEXT, "traite" INTEGER NOT NULL DEFAULT 0, PRIMARY KEY("id" AUTOINCREMENT)
-                );
-                CREATE TABLE IF NOT EXISTS "utilisateurs" (
-                    "id" INTEGER, "nom_utilisateur" TEXT NOT NULL UNIQUE, "mot_de_passe" TEXT NOT NULL, "role" TEXT NOT NULL DEFAULT 'utilisateur', "email" TEXT, PRIMARY KEY("id" AUTOINCREMENT)
-                );
-                CREATE TABLE IF NOT EXISTS "kits" (
-                    "id" INTEGER NOT NULL, "nom" TEXT NOT NULL UNIQUE, "description" TEXT, PRIMARY KEY("id" AUTOINCREMENT)
-                );
-                
-                -- ==================== MODIFICATION PRINCIPALE ICI ====================
-                CREATE TABLE IF NOT EXISTS "objets" (
-                    "id"	INTEGER,
-                    "nom"	TEXT NOT NULL,
-                    "quantite_physique"	INTEGER NOT NULL, -- La colonne "quantite" a été renommée
-                    "seuil"	INTEGER NOT NULL,
-                    "image"	TEXT,
-                    "armoire_id"	INTEGER NOT NULL,
-                    "categorie_id"	INTEGER NOT NULL,
-                    "en_commande"	INTEGER DEFAULT 0,
-                    "date_peremption"	TEXT,
-                    "traite"	INTEGER NOT NULL DEFAULT 0,
-                    "fds_nom_original"	TEXT,
-                    "fds_nom_securise"	TEXT,
-                    PRIMARY KEY("id" AUTOINCREMENT),
-                    FOREIGN KEY("armoire_id") REFERENCES "armoires"("id") ON DELETE RESTRICT,
-                    FOREIGN KEY("categorie_id") REFERENCES "categories"("id") ON DELETE RESTRICT
-                );
-                -- ===================================================================
-
-                CREATE TABLE IF NOT EXISTS "historique" (
-                    "id" INTEGER, "objet_id" INTEGER NOT NULL, "utilisateur_id" INTEGER NOT NULL, "action" TEXT NOT NULL, "details" TEXT, "timestamp" DATETIME NOT NULL, PRIMARY KEY("id" AUTOINCREMENT), FOREIGN KEY("objet_id") REFERENCES "objets"("id") ON DELETE CASCADE, FOREIGN KEY("utilisateur_id") REFERENCES "utilisateurs"("id") ON DELETE CASCADE
-                );
-                CREATE TABLE IF NOT EXISTS "kit_objets" (
-                    "id" INTEGER NOT NULL, "kit_id" INTEGER NOT NULL, "objet_id" INTEGER NOT NULL, "quantite" INTEGER NOT NULL, PRIMARY KEY("id" AUTOINCREMENT), FOREIGN KEY("kit_id") REFERENCES "kits"("id") ON DELETE CASCADE, FOREIGN KEY("objet_id") REFERENCES "objets"("id") ON DELETE CASCADE
-                );
-                CREATE TABLE IF NOT EXISTS "parametres" (
-                    "cle" TEXT, "valeur" TEXT, PRIMARY KEY("cle")
-                );
-                CREATE TABLE IF NOT EXISTS "reservations" (
-                    "id" INTEGER, "objet_id" INTEGER NOT NULL, "utilisateur_id" INTEGER NOT NULL, "quantite_reservee" INTEGER NOT NULL, "debut_reservation" DATETIME NOT NULL, "fin_reservation" DATETIME NOT NULL, "groupe_id" TEXT, "kit_id" INTEGER, PRIMARY KEY("id" AUTOINCREMENT), FOREIGN KEY("kit_id") REFERENCES "kits"("id"), FOREIGN KEY("objet_id") REFERENCES "objets"("id"), FOREIGN KEY("utilisateur_id") REFERENCES "utilisateurs"("id")
-                );
-                INSERT INTO "parametres" ("cle", "valeur") VALUES ('licence_statut', 'FREE');
-                INSERT INTO "parametres" ("cle", "valeur") VALUES ('licence_cle', '');
-                COMMIT;
-            """
-            
-            db.executescript(schema_script)
-            db.close()
-            app.logger.info("Base de données et schéma mis à jour initialisés avec succès.")
-        except sqlite3.Error as e:
-            app.logger.error(f"Erreur critique lors de l'initialisation de la base de données : {e}")
-            if os.path.exists(DATABASE):
-               os.remove(DATABASE)
-
-# Assurez-vous que cette ligne est bien présente juste après la définition de la fonction
-init_db()
-
-# --- DÉCORATEURS DE SÉCURITÉ ---
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash("Veuillez vous connecter pour accéder à cette page.", "error")
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get('user_role') != 'admin':
-            flash("Accès réservé aux administrateurs.", "error")
-            return redirect(url_for('index'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-def pro_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        db = get_db()
-        try:
-            licence_row = db.execute("SELECT valeur FROM parametres WHERE cle = ?", ('licence_statut', )).fetchone()
-            is_pro = licence_row and licence_row['valeur'] == 'PRO'
-        except sqlite3.Error:
-            is_pro = False
-        if not is_pro:
-            flash("Cette fonctionnalité est réservée à la version Pro.", "warning")
-            return redirect(url_for('index'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-def limit_objets_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        db = get_db()
-        licence_row = db.execute("SELECT valeur FROM parametres WHERE cle = ?", ('licence_statut', )).fetchone()
-        is_pro = licence_row and licence_row['valeur'] == 'PRO'
-        if not is_pro:
-            count = db.execute("SELECT COUNT(id) FROM objets").fetchone()[0]
-            if count >= 50:
-                flash("La version gratuite est limitée à 50 objets. Passez à la version Pro pour en ajouter davantage.", "warning")
-                return redirect(request.referrer or url_for('index'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 # --- FILTRES JINJA2 PERSONNALISÉS ---
 def format_datetime(value, fmt='%d/%m/%Y %H:%M'):
@@ -255,88 +113,14 @@ def annee_scolaire_format(year):
 app.jinja_env.filters['annee_scolaire'] = annee_scolaire_format
 
 # --- GESTION DE L'INITIALISATION AU PREMIER LANCEMENT ---
-def is_setup_needed():
-    try:
-        with app.app_context():
-            db = get_db()
-            user = db.execute("SELECT id FROM utilisateurs LIMIT 1").fetchone()
-            return user is None
-    except sqlite3.OperationalError:
-        return True
-
 @app.before_request
 def check_setup():
     if not os.path.exists(DATABASE):
         return
     allowed_endpoints = ['static', 'setup', 'login', 'register']
     if request.endpoint and request.endpoint not in allowed_endpoints:
-        if is_setup_needed():
-            return redirect(url_for('setup'))
-
-@app.route("/setup", methods=['GET', 'POST'])
-def setup():
-    if not is_setup_needed():
-        flash("L'application est déjà configurée.", "error")
-        return redirect(url_for('login'))
-    
-    db = get_db()
-    if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password')
-        password_confirm = request.form.get('password_confirm')
-        email = request.form.get('email', '').strip()
-        if not all([username, password, password_confirm, email]):
-            flash("Tous les champs sont requis.", "error")
-            return redirect(url_for('setup'))
-        if len(password) < 12 or \
-           not re.search(r"[a-z]", password) or \
-           not re.search(r"[A-Z]", password) or \
-           not re.search(r"[0-9]", password) or \
-           not re.search(r"[!@#$%^&*(),.?:{}|<>]", password):
-            flash("Le mot de passe doit contenir au moins 12 caractères, "
-                  "incluant une majuscule, une minuscule, un chiffre et "
-                  "un caractère spécial.", "error")
-            return redirect(url_for('setup'))
-        if password != password_confirm:
-            flash("Les mots de passe ne correspondent pas.", "error")
-            return redirect(url_for('setup'))
-        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(email_regex, email):
-            flash("L'adresse e-mail fournie n'est pas valide.", "error")
-            return redirect(url_for('setup'))
-        
-        db.execute(
-            "INSERT INTO utilisateurs (nom_utilisateur, mot_de_passe, role, "
-            "email) VALUES (?, ?, 'admin', ?)",
-            (username, generate_password_hash(password, method='scrypt'), email))
-        
-        instance_id = str(uuid.uuid4())
-        db.execute(
-            "INSERT OR IGNORE INTO parametres (cle, valeur) VALUES (?, ?)",
-            ('instance_id', instance_id))
-        db.commit()
-        
-        flash(
-            f"Administrateur '{username}' créé avec succès ! "
-            "Vous pouvez maintenant vous connecter.", "success")
-        return redirect(url_for('login'))
-
-    # Si la méthode est GET, on affiche simplement la page de configuration.
-    # Il n'y a plus besoin de charger de données.
-    return render_template('setup.html')
-
-    # On fournit des listes vides au template au cas où les tables n'existeraient pas encore
-    armoires = []
-    categories = []
-    try:
-        armoires = db.execute("SELECT * FROM armoires ORDER BY nom").fetchall()
-        categories = db.execute("SELECT * FROM categories ORDER BY nom").fetchall()
-    except sqlite3.OperationalError:
-        # Les tables n'existent pas encore, ce qui est normal au premier setup
-        pass
-        
-    return render_template('setup.html', armoires=armoires, categories=categories)
-
+        if is_setup_needed(app):
+            return redirect(url_for('auth.setup'))
 
 # --- FONCTIONS COMMUNES ET PROCESSEUR DE CONTEXTE ---
 def get_alerte_info(db):
@@ -374,7 +158,7 @@ def get_alerte_info(db):
 def inject_alert_info():
     # Si l'application n'est pas encore configurée ou si l'utilisateur n'est pas connecté,
     # on renvoie des valeurs par défaut sans interroger la base de données.
-    if 'user_id' not in session or is_setup_needed():
+    if 'user_id' not in session or is_setup_needed(app):
         return {'alertes_total': 0, 'alertes_stock': 0, 'alertes_peremption': 0}
     
     # Ce bloc ne s'exécute que si l'app est configurée ET l'utilisateur connecté.
@@ -395,7 +179,7 @@ def inject_licence_info():
     licence_info = {'statut': 'FREE', 'is_pro': False, 'instance_id': 'N/A'}
 
     # On ne fait rien si la session n'est pas active ou si l'app n'est pas configurée.
-    if 'user_id' not in session or is_setup_needed():
+    if 'user_id' not in session or is_setup_needed(app):
         return {'licence': licence_info}
 
     try:
@@ -922,60 +706,10 @@ def calendrier():
                            categories=categories,
                            now=datetime.now)
 
-
 @app.route("/panier")
 @login_required
 def panier():
     return render_template("panier.html")
-
-
-@app.route("/profil", methods=['GET', 'POST'])
-@login_required
-def profil():
-    db = get_db()
-    user_id = session['user_id']
-    if request.method == 'POST':
-        ancien_mdp = request.form.get('ancien_mot_de_passe')
-        nouveau_mdp = request.form.get('nouveau_mot_de_passe')
-        confirmation_mdp = request.form.get('confirmation_mot_de_passe')
-        user = db.execute("SELECT mot_de_passe FROM utilisateurs WHERE id = ?",
-                          (user_id, )).fetchone()
-        if not user or not check_password_hash(user['mot_de_passe'],
-                                               ancien_mdp):
-            flash("Votre ancien mot de passe est incorrect.", "error")
-            return redirect(url_for('profil'))
-        if len(nouveau_mdp) < 12 or \
-           not re.search(r"[a-z]", nouveau_mdp) or \
-           not re.search(r"[A-Z]", nouveau_mdp) or \
-           not re.search(r"[0-9]", nouveau_mdp) or \
-           not re.search(r"[!@#$%^&*(),.?:{}|<>]", nouveau_mdp):
-            flash("Le nouveau mot de passe doit contenir au moins 12 caractères, "
-                  "incluant une majuscule, une minuscule, un chiffre et "
-                  "un caractère spécial.", "error")
-            return redirect(url_for('profil'))
-        if len(nouveau_mdp) < 4:
-            flash(
-                "Le nouveau mot de passe doit contenir au moins 4 caractères.",
-                "error")
-            return redirect(url_for('profil'))
-        try:
-            db.execute("UPDATE utilisateurs SET mot_de_passe = ? WHERE id = ?",
-                       (generate_password_hash(nouveau_mdp,
-                                               method='scrypt'), user_id))
-            db.commit()
-            flash("Votre mot de passe a été mis à jour avec succès.",
-                  "success")
-            return redirect(url_for('index'))
-        except sqlite3.Error as e:
-            db.rollback()
-            flash(f"Erreur de base de données : {e}", "error")
-    armoires = db.execute("SELECT * FROM armoires ORDER BY nom").fetchall()
-    categories = db.execute("SELECT * FROM categories ORDER BY nom").fetchall()
-    return render_template("profil.html",
-                           armoires=armoires,
-                           categories=categories,
-                           now=datetime.now)
-
 
 @app.route("/alertes")
 @login_required
@@ -1244,7 +978,7 @@ def promouvoir_utilisateur(id_user):
         flash(
             "Passation de pouvoir réussie ! "
             "Vous êtes maintenant un utilisateur standard.", "success")
-        return redirect(url_for('logout'))
+        return redirect(url_for('auth.logout'))
     except sqlite3.Error as e:
         db.rollback()
         flash(f"Une erreur est survenue lors de la passation de pouvoir : {e}",
@@ -2390,66 +2124,6 @@ def telecharger_fds_objet(objet_id):
     else:
         flash("Cet objet n'a pas de FDS associée.", "error")
         return redirect(url_for('voir_objet', objet_id=objet_id))
-
-
-# --- ROUTES D'AUTHENTIFICATION ---
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    if 'user_id' in session:
-        return redirect(url_for('index'))
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        db = get_db()
-        user = db.execute(
-            'SELECT * FROM utilisateurs WHERE nom_utilisateur = ?',
-            (username, )).fetchone()
-        if user and check_password_hash(user['mot_de_passe'], password):
-            session.permanent = (user['role'] != 'admin')
-            session['user_id'] = user['id']
-            session['username'] = user['nom_utilisateur']
-            session['user_role'] = user['role']
-            flash(f"Bienvenue, {user['nom_utilisateur']} !", "success")
-            return redirect(url_for('index'))
-        else:
-            flash("Nom d'utilisateur ou mot de passe invalide.", "error")
-    return render_template('login.html')
-
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if is_setup_needed():
-        return redirect(url_for('setup'))
-    if request.method == 'POST':
-        username = request.form.get('username').strip()
-        password = request.form.get('password')
-        email = request.form.get('email').strip()
-        if not username or not password or not email:
-            flash("Tous les champs sont requis.", "error")
-            return redirect(url_for('register'))
-        db = get_db()
-        try:
-            db.execute(
-                "INSERT INTO utilisateurs (nom_utilisateur, mot_de_passe, "
-                "email) VALUES (?, ?, ?)",
-                (username, generate_password_hash(password,
-                                                  method='scrypt'), email))
-            db.commit()
-            flash(
-                f"Le compte '{username}' a été créé. "
-                "Vous pouvez maintenant vous connecter.", "success")
-            return redirect(url_for('login'))
-        except sqlite3.IntegrityError:
-            flash(f"Le nom d'utilisateur '{username}' existe déjà.", "error")
-            return redirect(url_for('register'))
-    return render_template('register.html')
-
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    flash("Vous avez été déconnecté.", "success")
-    return redirect(url_for('login'))
 
 
 # --- ROUTES D'ACTION ---

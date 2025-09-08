@@ -9,7 +9,7 @@
     {% include 'header.html' %}
     <div class="main-container">
 
-        <form action="{{ url_for('profil') }}" method="post" class="login-form">
+        <form action="{{ url_for('auth.profil') }}" method="post" class="login-form">
 		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <h2>Mon Profil</h2>
             <p class="form-subtitle">Mettez à jour votre mot de passe ici.</p>

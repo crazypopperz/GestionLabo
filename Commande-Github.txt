@@ -1,0 +1,66 @@
+############################################################
+#                                                          #
+#        AIDE-MÉMOIRE GIT - Les Commandes Essentielles       #
+#                                                          #
+############################################################
+
+
+#-----------------------------------------------------------
+# PARTIE 1 : CONFIGURATION (À ne faire qu'une seule fois)
+#-----------------------------------------------------------
+
+# --- Se présenter à Git (une seule fois par ordinateur) ---
+# Git a besoin de savoir qui tu es pour signer tes sauvegardes (commits).
+git config --global user.name "Ton Nom ou Pseudo"
+git config --global user.email "ton.email@github.com"
+
+
+# --- Initialiser un projet (une seule fois par projet) ---
+# Transforme un dossier normal en dépôt Git.
+git init
+
+# Renomme la branche principale en "main" (la convention moderne).
+git branch -M main
+
+
+# --- Connecter ton projet à GitHub (une seule fois par projet) ---
+# Indique à ton Git local l'adresse de son "double" sur internet.
+git remote add origin https://github.com/ton_pseudo/ton_depot.git
+
+
+
+#-----------------------------------------------------------
+# PARTIE 2 : LE CYCLE DE TRAVAIL QUOTIDIEN (À faire tout le temps)
+#-----------------------------------------------------------
+
+# Le cycle complet est : status -> add -> commit -> push
+
+# --- ÉTAPE 1 : Vérifier l'état des lieux ---
+# Te montre les fichiers modifiés, ajoutés ou supprimés. C'est ta boussole.
+git status
+
+
+# --- ÉTAPE 2 : Préparer la sauvegarde ("add") ---
+# Met les fichiers modifiés dans la "zone de préparation".
+
+# Pour préparer TOUS les fichiers modifiés d'un coup :
+git add .
+
+# Pour ne préparer qu'UN SEUL fichier spécifique :
+git add nom_du_fichier.py
+
+
+# --- ÉTAPE 3 : Créer la sauvegarde ("commit") ---
+# Crée une "photographie" de tes fichiers préparés, avec un message descriptif.
+# Le message est TRÈS important. Sois clair et concis.
+git commit -m "Description de ce que j'ai fait (ex: Correction du login)"
+
+
+# --- ÉTAPE 4 : Envoyer la sauvegarde sur GitHub ("push") ---
+# C'est SEULEMENT après cette commande que tes modifications sont visibles en ligne.
+
+# La TOUTE PREMIÈRE fois que tu envoies un projet :
+git push -u origin main
+
+# Toutes les fois suivantes (99% du temps) :
+git push
