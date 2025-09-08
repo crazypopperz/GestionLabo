@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Configuration Initiale - GMLCL</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="main-container">
+        <!-- NOUVEAU : Un conteneur pour mieux centrer le formulaire -->
+        <div class="setup-form-container">
+            <form class="setup-form" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <!-- NOUVEAU : Logo et nom de l'application -->
+                <div class="setup-header">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo GMLCL" class="setup-logo">
+                    <h1>Gestion Matériel Labo Collège et Lycée</h1>
+                    <p class="form-subtitle">Configuration du compte administrateur</p>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username" required placeholder="Ex: admin.dupont">
+                </div>
+
+                <!-- NOUVEAU : Groupe pour les mots de passe -->
+                <div class="password-group">
+                    <div class="form-group">
+                        <label for="password">
+                            Mot de passe
+                            <!-- NOUVEAU : Infobulle pour les prérequis -->
+                            <span class="tooltip-container">
+                                <svg class="tooltip-trigger" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1s1 .45 1 1v4c0 .55-.45 1-1 1zm1-8h-2V7h2v2z"/></svg>
+                                <span class="tooltip-text">
+                                    Doit contenir au moins 12 caractères, incluant :<br>
+                                    - Une majuscule (A-Z)<br>
+                                    - Une minuscule (a-z)<br>
+                                    - Un chiffre (0-9)<br>
+                                    - Un caractère spécial (!@#...)
+                                </span>
+                            </span>
+                        </label>
+                        <input type="password" id="password" name="password" required placeholder="Choisissez un mot de passe sécurisé">
+                    </div>
+                    <div class="form-group">
+                        <label for="password_confirm">Confirmez le mot de passe</label>
+                        <input type="password" id="password_confirm" name="password_confirm" required placeholder="Retapez votre mot de passe">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Adresse e-mail</label>
+                    <input type="email" id="email" name="email" required placeholder="Ex: contact@mon-etablissement.fr">
+                </div>
+
+                <button type="submit" class="btn-action btn-full-width">Créer le compte et Démarrer</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

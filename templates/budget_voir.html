@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Consultation du Budget</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="main-container">
+        <div class="management-header">
+            <h2 class="page-title">
+                <svg class="page-title-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M600-120q-118 0-210-67T260-360H120v-80h122q-2-11-2-20v-40q0-9 2-20H120v-80h140q38-106 130-173t210-67q69 0 130.5 24T840-748l-70 70q-35-29-78.5-45.5T600-740q-75 0-136.5 38.5T370-600h230v80H344q-2 11-3 20t-1 20q0 11 1 20t3 20h256v80H370q32 63 93.5 101.5T600-220q48 0 92.5-16.5T770-282l70 70q-48 44-109.5 68T600-120Z"/></svg>
+                <span>Suivi Budgétaire</span>
+            </h2>
+        </div>
+
+        <div class="budget-grid">
+            <!-- Colonne de gauche : Synthèse -->
+            <div class="budget-summary-col">
+                <div class="content-card">
+                    <h3 class="card-title-icon">
+                        <svg class="card-title-svg" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M600-120q-118 0-210-67T260-360H120v-80h122q-2-11-2-20v-40q0-9 2-20H120v-80h140q38-106 130-173t210-67q69 0 130.5 24T840-748l-70 70q-35-29-78.5-45.5T600-740q-75 0-136.5 38.5T370-600h230v80H344q-2 11-3 20t-1 20q0 11 1 20t3 20h256v80H370q32 63 93.5 101.5T600-220q48 0 92.5-16.5T770-282l70 70q-48 44-109.5 68T600-120Z"/></svg>
+                        Synthèse Année {{ budget_actuel.annee if budget_actuel else 'N/A' }}
+                    </h3>
+                    {% if budget_actuel %}
+                        <ul class="stat-list">
+                            <li><span>Budget Initial</span> <span class="stat-value positive">{{ "%.2f"|format(budget_actuel.montant_initial) }} €</span></li>
+                            <li><span>Dépenses Totales</span> <span class="stat-value negative">{{ "%.2f"|format(total_depenses) }} €</span></li>
+                            <li class="solde"><span>Solde Restant</span> <span class="stat-value {% if solde >= 0 %}positive{% else %}negative{% endif %}">{{ "%.2f"|format(solde) }} €</span></li>
+                        </ul>
+                    {% else %}
+                        <p class="text-discret">Aucun budget n'a été défini pour l'année en cours.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Colonne de droite : Liste des dépenses -->
+            <div class="budget-details-col">
+                <div class="content-card">
+                    <h3 class="card-title-icon">
+                        <svg class="card-title-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M360-200v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360ZM200-160q-33 0-56.5-23.5T120-240q0-33 23.5-56.5T200-320q33 0 56.5 23.5T280-240q0 33-23.5 56.5T200-160Zm0-240q-33 0-56.5-23.5T120-480q0-33 23.5-56.5T200-560q33 0 56.5 23.5T280-480q0 33-23.5 56.5T200-400Zm0-240q-33 0-56.5-23.5T120-720q0-33 23.5-56.5T200-800q33 0 56.5 23.5T280-720q0 33-23.5 56.5T200-640Z"/></svg>
+                        Détail des Dépenses
+                    </h3>
+                    <div class="table-container">
+                        <table class="objet-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Fournisseur</th>
+                                    <th>Contenu de la commande</th>
+                                    <th>Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for depense in depenses %}
+                                <tr>
+                                    <td>{{ depense.date_depense | strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ depense.fournisseur_nom or 'N/A' }}</td>
+                                    <td style="text-align: left;">{{ depense.contenu }}</td>
+                                    <td class="negative">{{ "%.2f"|format(depense.montant) }} €</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-discret" style="padding: 20px;">Aucune dépense enregistrée pour ce budget.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include 'footer.html' %}
+</body>
+</html>

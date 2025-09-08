@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Détails de {{ objet.nom }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="main-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="breadcrumb-nav">
+            <a href="{{ url_for('inventaire') }}" class="breadcrumb-link">
+                <span class="breadcrumb-text">Inventaire</span>
+            </a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">{{ objet.nom }}</span>
+        </div>
+
+        <div class="details-grid">
+            <!-- Carte d'identité de l'objet -->
+            <div class="details-card">
+                <div class="identity-header">
+                    <div class="identity-image-wrapper">
+                        {% if objet.image %}
+                            <img src="{{ url_for('serve_image', filename=objet.image) }}" alt="Image de {{ objet.nom }}" class="identity-image-thumbnail">
+                            <img src="{{ url_for('serve_image', filename=objet.image) }}" alt="Aperçu de {{ objet.nom }}" class="identity-image-preview">
+                        {% else %}
+                            <div class="identity-image-placeholder">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/></svg>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <h2 class="details-title">{{ objet.nom }}</h2>
+                </div>
+
+                <ul class="details-list">
+                    <li><strong>Quantité Disponible :</strong> <span class="stock-disponible">{{ objet.quantite_disponible }}</span></li>
+                    <li><strong>Quantité Physique Totale :</strong> {{ objet.quantite_physique }}</li>
+                    <li><strong>Seuil d'alerte :</strong> {{ objet.seuil }}</li>
+                    <li><strong>Armoire :</strong> <a href="{{ url_for('voir_armoire', id=objet.armoire_id) }}">{{ objet.armoire_nom }}</a></li>
+                    <li><strong>Catégorie :</strong> <a href="{{ url_for('voir_categorie', id=objet.categorie_id) }}">{{ objet.categorie_nom }}</a></li>
+                    <li>
+                        <strong>Date de péremption :</strong>
+                        {% if objet.date_peremption %}
+                            {{ objet.date_peremption | strftime('%d/%m/%Y') }}
+                        {% else %}
+                            <span class="text-discret">Non spécifiée</span>
+                        {% endif %}
+                    </li>
+                    <li>
+                        <strong>Fiche de Sécurité :</strong>
+                        {% if objet.fds_nom_securise %}
+                            <a href="{{ url_for('telecharger_fds_objet', objet_id=objet.id) }}" class="btn-action" style="padding: 5px 10px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>
+                                {{ objet.fds_nom_original }}
+                            </a>
+                        {% else %}
+                            <span class="text-discret">Aucune</span>
+                        {% endif %}
+                    </li>
+                </ul>
+
+                <div class="details-actions">
+                    <button class="btn-action edit-objet-btn"
+                            data-objet-id="{{ objet.id }}"
+                            data-armoire-id="{{ objet.armoire_id }}"
+                            data-categorie-id="{{ objet.categorie_id }}"
+                            data-nom="{{ objet.nom }}"
+                            {# CORRECTION : Le formulaire de modification utilise la quantité physique #}
+                            data-quantite="{{ objet.quantite_physique }}"
+                            data-seuil="{{ objet.seuil }}"
+                            data-date-peremption="{{ objet.date_peremption or '' }}"
+                            data-image-url="{{ url_for('static', filename='images/objets/' + objet.image) if objet.image else '' }}"
+                            data-modal-trigger="add-object-modal">
+                        Modifier l'objet
+                    </button>
+                </div>
+            </div>
+
+            <!-- Carte de l'historique -->
+            <div class="details-card">
+                <h3>Historique des actions</h3>
+                <div class="history-table-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Action</th>
+                                <th>Utilisateur</th>
+                                <th>Détails</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entree in historique %}
+                            <tr>
+                                <td class="timestamp">{{ entree.timestamp | strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td><span class="action-tag-small">{{ entree.action }}</span></td>
+                                <td>{{ entree.nom_utilisateur }}</td>
+                                <td>{{ entree.details }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-discret" style="text-align: center; padding: 20px;">Aucun historique pour cet objet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'footer.html' %}
+    {% include 'modale_objet.html' %}
+</body>
+</html>

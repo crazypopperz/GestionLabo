@@ -1,0 +1,72 @@
+<header class="app-header blue-bg">
+    <div class="header-container">
+        <div class="header-left">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+            <h1><a href="{{ url_for('index') }}">Gestion Matériel Labo Collège Lycée</a></h1>
+        </div>
+        <div class="header-right">
+    <div class="search-container">
+        <div class="search-bar">
+            <input type="search" id="recherche-objet" placeholder="Rechercher un objet..." autocomplete="off">
+        </div>
+        <div id="search-results-container"></div>
+    </div>
+
+    <!-- Icône 1 : Panier de RÉSERVATION (le nôtre) -->
+    <a href="{{ url_for('panier') }}" class="header-icon-link" title="Panier de réservation">
+        <svg class="header-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        <span id="cart-count-badge" class="cart-count-badge" style="display: none;">0</span>
+    </a>
+
+    <!-- Icône 2 : Alertes de stock et de péremption -->
+	<a href="{{ url_for('alertes') }}" class="header-icon-link" title="Alertes de stock et de péremption">
+		<svg class="header-icon 
+			{% if alertes_total > 3 %}
+				alert-critical pulse-fast
+			{% elif alertes_total > 0 %}
+				alert-warning pulse
+			{% else %}
+				alert-ok
+			{% endif %}" 
+			xmlns="http://www.w3.org/2000/svg" height="28px" viewBox="0 0 24 24" width="28px">
+			<path d="M12 23c1.1 0 1.99-.89 1.99-1.99h-3.98c0 1.1.89 1.99 1.99 1.99zm7-6v-6c0-3.35-2.36-6.15-5.5-6.83V1.5h-3v2.67C7.36 4.85 5 7.65 5 11v6l-2 2v1h18v-1l-2-2zm-6-1h-2v-2h2v2zm0-4h-2V8h2v4z"/>
+		</svg>
+	</a>
+
+    <div class="auth-section">
+        {% if session.user_id %}
+            <a href="{{ url_for('profil') }}" class="auth-link" title="Gérer mon profil / Modifier le mot de passe">
+                <svg class="profile-link-svg" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M600-120h240v-33q-25-23-56-35t-64-12q-33 0-64 12t-56 35v33Zm120-120q25 0 42.5-17.5T780-300q0-25-17.5-42.5T720-360q-25 0-42.5 17.5T660-300q0 25 17.5 42.5T720-240ZM480-480Zm2-140q-58 0-99 41t-41 99q0 48 27 84t71 50q0-23 .5-44t8.5-38q-14-8-20.5-22t-6.5-30q0-25 17.5-42.5T482-540q15 0 28.5 7.5T533-512q11-5 23-7t24-2h36q-13-43-49.5-71T482-620ZM370-80l-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-85 65H696q-1-5-2-10.5t-3-10.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q24 25 54 42t65 22v184h-70Zm210 40q-25 0-42.5-17.5T520-100v-280q0-25 17.5-42.5T580-440h280q25 0 42.5 17.5T920-380v280q0 25-17.5 42.5T860-40H580Z"/></svg>
+            </a>
+            <span class="welcome-message">Bonjour, {{ session.username }}</span>
+            <a href="{{ url_for('logout') }}" class="auth-link">Se déconnecter</a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="auth-link">Connexion</a>
+            <a href="{{ url_for('register') }}" class="auth-link btn-register">Créer un compte</a>
+        {% endif %}
+    </div>
+</div>
+    </div>
+</header>
+
+<nav class="sub-nav">
+    {# CORRIGÉ : le lien vers l'inventaire pointe maintenant vers la nouvelle route /inventaire #}
+    <a href="{{ url_for('inventaire') }}" class="sub-nav-button">
+        <svg xmlns="http://www.w3.org/2000/svg" class="sub-nav-icon" viewBox="0 -960 960 960"><path d="M360-200v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360ZM200-160q-33 0-56.5-23.5T120-240q0-33 23.5-56.5T200-320q33 0 56.5 23.5T280-240q0 33-23.5 56.5T200-160Zm0-240q-33 0-56.5-23.5T120-480q0-33 23.5-56.5T200-560q33 0 56.5 23.5T280-480q0 33-23.5 56.5T200-400Zm0-240q-33 0-56.5-23.5T120-720q0-33 23.5-56.5T200-800q33 0 56.5 23.5T280-720q0 33-23.5 56.5T200-640Z"/></svg>
+        <span>Inventaire Complet</span>
+    </a>
+    <a href="{{ url_for('gestion_armoires') }}" class="sub-nav-button">
+        <svg xmlns="http://www.w3.org/2000/svg" class="sub-nav-icon" viewBox="0 -960 960 960"><path d="M600-40q-33 0-56.5-23.5T520-120q0-23 11-41t29-29v-221q-18-11-29-28.5T520-480q0-33 23.5-56.5T600-560q33 0 56.5 23.5T680-480q0 23-11 40.5T640-411v115l160-53v-62q-18-11-29-28.5T760-480q0-33 23.5-56.5T840-560q33 0 56.5 23.5T920-480q0 23-11 40.5T880-411v119l-240 80v22q18 11 29 29t11 41q0 33-23.5 56.5T600-40ZM160-160v-560 560Zm0 0q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640H447l-80-80H160v480h280v80H160Z"/></svg>
+        <span>Gérer les Armoires</span>
+    </a>
+    <a href="{{ url_for('gestion_categories') }}" class="sub-nav-button">
+        <svg xmlns="http://www.w3.org/2000/svg" class="sub-nav-icon" viewBox="0 -960 960 960"><path d="M160-480v240-480 240Zm400 360q17 0 28.5-11.5T600-160q0-17-11.5-28.5T560-200q-17 0-28.5 11.5T520-160q0 17 11.5 28.5T560-120Zm240-400q17 0 28.5-11.5T840-560q0-17-11.5-28.5T800-600q-17 0-28.5 11.5T760-560q0 17 11.5 28.5T800-520Zm-560 0h200v-80H240v80Zm0 160h200v-80H240v80Zm-80 200q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720H160v480h200v80H160ZM560-40q-50 0-85-35t-35-85q0-39 22.5-70t57.5-43v-127h240v-47q-35-12-57.5-43T680-560q0-50 35-85t85-35q50 0 85 35t35 85q0 39-22.5 70T840-447v127H600v47q35 12 57.5 43t22.5 70q0 50-35 85t-85 35Z"/></svg>
+        <span>Gérer les Catégories</span>
+    </a>
+    {% if session.user_id %}
+    <a href="{{ url_for('calendrier') }}" class="sub-nav-button">
+        <svg xmlns="http://www.w3.org/2000/svg" class="sub-nav-icon" viewBox="0 -960 960 960"><path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z"/></svg>
+        <span>Calendrier de réservation</span>
+    </a>
+    {% endif %}
+</nav>

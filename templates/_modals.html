@@ -1,0 +1,202 @@
+<!-- Modale de Réservation (Étape 1) -->
+<div id="reservation-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-xxlarge">
+        <div class="modal-header">
+            <h3 id="reservation-modal-title" class="modal-title-with-icon">Réserver du matériel</h3>
+            <button class="close-btn">×</button>
+        </div>
+        <div class="time-selector-container">
+            <div class="form-group">
+                <label for="heure_debut">Heure de début</label>
+                <select name="heure_debut" id="heure_debut">
+                    {% for hour in range(8, 20) %}
+                        <option value="{{ "%02d:00"|format(hour) }}">{{ "%02d:00"|format(hour) }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="heure_fin">Heure de fin</label>
+                <select name="heure_fin" id="heure_fin">
+                    {% for hour in range(9, 21) %}
+                        <option value="{{ "%02d:00"|format(hour) }}">{{ "%02d:00"|format(hour) }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="modal-body-split-3col">
+            <!-- Colonne 1: Catégories -->
+            <div id="modal-categories-sidebar" class="modal-sidebar">
+                <!-- Contenu généré par JS -->
+            </div>
+            
+            <!-- Colonne 2: Objets -->
+            <div id="modal-objects-main" class="modal-main-content">
+                <div class="modal-search-bar">
+                    <input type="search" id="reservation-search-input" placeholder="Filtrer les objets...">
+                </div>
+                <div id="reservation-objects-list" class="reservation-list">
+                    <!-- Contenu généré par JS -->
+                </div>
+            </div>
+
+            <!-- Colonne 3: Kits -->
+            <div id="modal-kits-sidebar" class="modal-sidebar">
+                <h4>Réserver un Kit</h4>
+                <div id="kits-list" class="kits-list">
+                    <!-- Contenu généré par JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-action btn-cancel">Annuler</button>
+            <button type="button" id="add-to-cart-btn" class="btn-action">Ajouter au panier</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modale de Confirmation (Étape 2) -->
+<div id="confirmation-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-large">
+         <div class="modal-header">
+            <h3 id="confirmation-modal-title" class="modal-title-with-icon">Confirmer la réservation</h3>
+            <button class="close-btn">×</button>
+        </div>
+        <div class="modal-body" style="padding: 25px;">
+            <div id="confirmation-summary-list" class="reservation-list">
+                <!-- Contenu généré par JS -->
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" id="confirmation-back-btn" class="btn-action btn-secondary">Modifier</button>
+            <button type="button" id="confirmation-confirm-btn" class="btn-action">Confirmer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modale de Confirmation de Réinitialisation de Licence -->
+<div id="reset-licence-modal" class="modal-overlay modal-danger" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title-with-icon">
+                <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                <span>Réinitialiser la Licence Pro</span>
+            </h3>
+            <button type="button" class="close-btn">×</button>
+        </div>
+        <form action="{{ url_for('reset_licence') }}" method="post">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-danger-content">
+                <p>Cette action est définitive. L'application repassera en mode <strong>GRATUIT</strong> et sera de nouveau soumise à la limite de 50 objets.</p>
+                <p>Pour confirmer cette action, veuillez entrer votre mot de passe administrateur.</p>
+                <div class="form-group">
+                    <label for="admin_password_confirm">Votre mot de passe :</label>
+                    <input type="password" id="admin_password_confirm" name="admin_password" required>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel close-btn">Annuler</button>
+                <button type="submit" class="btn-action btn-danger">Confirmer la réinitialisation</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modale de Confirmation de Suppression de Réservation -->
+<div id="delete-reservation-modal" class="modal-overlay modal-danger" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title-with-icon">
+                <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                <span>Confirmer la Suppression</span>
+            </h3>
+            <button class="close-btn">×</button>
+        </div>
+        <div class="modal-danger-content">
+            <p id="delete-resa-text">Êtes-vous sûr de vouloir supprimer définitivement cette réservation ? Le stock sera mis à jour.</p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel close-btn">Annuler</button>
+            <button type="button" id="confirm-delete-resa-btn" class="btn-action btn-danger">Oui, supprimer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modale de Confirmation pour Vider le Panier -->
+<div id="clear-cart-modal" class="modal-overlay modal-danger" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title-with-icon">
+                <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                <span>Vider le Panier</span>
+            </h3>
+            <button class="close-btn">×</button>
+        </div>
+        <div class="modal-danger-content">
+            <p>Êtes-vous sûr de vouloir supprimer toutes les réservations de votre panier ? Cette action est irréversible.</p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel close-btn">Annuler</button>
+            <button type="button" id="confirm-clear-cart-btn" class="btn-action btn-danger">Oui, vider le panier</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modale de Confirmation pour Clôture de budget -->
+<div id="cloture-budget-modal" class="modal-overlay modal-danger" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title-with-icon">
+                <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                <span>Clôturer le Budget</span>
+            </h3>
+            <button class="close-btn">×</button>
+        </div>
+        <div class="modal-danger-content">
+            <p>Êtes-vous sûr de vouloir clôturer le budget pour l'année scolaire <strong id="cloture-budget-annee"></strong> ? Cette action est irréversible.</p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel close-btn">Annuler</button>
+            <button type="button" id="confirm-cloture-btn" class="btn-action btn-danger">Oui, clôturer</button>
+        </div>
+    </div>
+</div>
+
+<!-- NOUVELLE MODALE : Clôture impossible -->
+<div id="cloture-impossible-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title-with-icon">
+                <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-4V7h2v6h-2z"/></svg>
+                <span>Clôture Impossible</span>
+            </h3>
+            <button class="close-btn">×</button>
+        </div>
+        <div class="modal-body" style="padding: 25px; text-align: center;">
+            <p>Le budget de l'année scolaire <strong id="cloture-impossible-annee"></strong> ne peut pas être clôturé avant <strong id="cloture-impossible-date"></strong>.</p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-action btn-cancel">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODALE D'INFORMATION / AVERTISSEMENT (GÉNÉRIQUE) -->
+<div id="info-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-warning">
+        <div class="modal-header">
+            <h3 id="info-modal-title" class="modal-title-with-icon">
+                <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                <span>Information</span>
+            </h3>
+            <button class="close-btn">×</button>
+        </div>
+        <div class="modal-body" style="padding: 25px; text-align: center; line-height: 1.6;">
+            <p id="info-modal-text">Message par défaut.</p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-action close-btn">OK</button>
+        </div>
+    </div>
+</div>

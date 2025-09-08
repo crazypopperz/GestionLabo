@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>À Propos - GMLCL</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="main-container">
+
+        <div class="breadcrumb-nav">
+            <a href="{{ url_for('admin') }}" class="breadcrumb-link">
+                <svg class="breadcrumb-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L3 9v12h18V9L12 2zm0 2.09L17.09 9H6.91L12 4.09zM7 19v-8h2v8H7zm4 0v-8h2v8h-2zm4 0v-8h2v8h-2z"/></svg>
+                <span class="breadcrumb-text">Administration</span>
+            </a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">À Propos</span>
+        </div>
+        
+        <div class="content-card" style="max-width: 800px; margin: 20px auto;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo GMLCL" style="width: 120px; height: auto; margin-bottom: 15px;">
+                <h2>Gestion Matériel Labo Collège et Lycée</h2>
+                <p class="text-discret" style="font-weight: bold;">Version 1.0</p>
+            </div>
+
+            <div class="details-list">
+				<li>
+					<strong>Développé par</strong>
+					<span>Xavier De Baudry d'Asson et Yll Basha @ac-nancy-metz.fr</span>
+				</li>
+				
+				{% if session.user_role == 'admin' %}
+					<li>
+						<strong>Statut de la Licence</strong>
+						{% if licence.is_pro %}
+							<span style="color: var(--couleur-succes); font-weight: bold;">PRO</span>
+						{% else %}
+							<span style="color: var(--couleur-avertissement-texte); font-weight: bold;">GRATUITE</span>
+						{% endif %}
+					</li>
+					<li>
+						<strong>Identifiant d'Instance</strong>
+						<code style="font-size: 0.9rem;">{{ licence.instance_id }}</code>
+					</li>
+				{% endif %}
+			</div>
+
+            <p class="text-discret" style="text-align: center; margin-top: 30px;">
+                Merci d'utiliser cette application pour simplifier la gestion de votre laboratoire.
+            </p>
+        </div>
+
+    </div>
+    {% include 'footer.html' %}
+</body>
+</html>

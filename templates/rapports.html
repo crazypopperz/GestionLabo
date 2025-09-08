@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapports d'Activité</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="main-container">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="table-header">
+            <h2 class="page-title">
+                <svg xmlns="http://www.w3.org/2000/svg" class="page-title-icon" viewBox="0 -960 960 960"><path d="M320-414v-306h120v306l-60-56-60 56Zm200 60v-526h120v406L520-354ZM120-216v-344h120v224L120-216Zm0 98 258-258 142 122 224-224h-64v-80h200v200h-80v-64L524-146 382-268 232-118H120Z"/></svg>
+                <span>Rapports d'Activité</span>
+            </h2>
+        </div>
+
+        <div class="form-rapports-grid">
+            <!-- Colonne de gauche : Formulaire -->
+            <form id="rapport-form" action="{{ url_for('exporter_rapports') }}" method="GET" class="rapports-config-col">
+                
+                <!-- Carte 1 : Configuration -->
+                <div class="content-card rapport-card">
+                    <h3 class="card-title-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="card-title-svg" viewBox="0 -960 960 960"><path d="m234-480-12-60q-12-5-22.5-10.5T178-564l-58 18-40-68 46-40q-2-13-2-26t2-26l-46-40 40-68 58 18q11-8 21.5-13.5T222-820l12-60h80l12 60q12 5 22.5 10.5T370-796l58-18 40 68-46 40q2 13 2 26t-2 26l46 40-40 68-58-18q-11 8-21.5 13.5T326-540l-12 60h-80Zm40-120q33 0 56.5-23.5T354-680q0-33-23.5-56.5T274-760q-33 0-56.5 23.5T194-680q0 33 23.5 56.5T274-600ZM592-40l-18-84q-17-6-31.5-14.5T514-158l-80 26-56-96 64-56q-2-18-2-36t2-36l-64-56 56-96 80 26q14-11 28.5-19.5T574-516l18-84h112l18 84q17 6 31.5 14.5T782-482l80-26 56 96-64 56q2 18 2 36t-2 36l64 56-56 96-80-26q-14 11-28.5 19.5T722-124l-18 84H592Zm56-160q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Z"/></svg>
+                        1. Configurer le rapport
+                    </h3>
+                    
+                    <div class="form-group">
+                        <h4 class="form-subtitle">CHOISIR LA PÉRIODE</h4>
+                        <div class="form-group-inline">
+                            <div class="input-group">
+                                <label for="date_debut">Date de début</label>
+                                <input type="date" id="date_debut" name="date_debut" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="date_fin">Date de fin</label>
+                                <input type="date" id="date_fin" name="date_fin" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <h4 class="form-subtitle">CHOISIR LE GROUPEMENT SOUHAITÉ</h4>
+                        <div class="segmented-control">
+                            <input type="radio" id="group_by_date" name="group_by" value="date" checked>
+                            <label for="group_by_date" class="btn-icon-left">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" /><path d="M16 3l0 4" /><path d="M8 3l0 4" /><path d="M4 11l16 0" /><path d="M8 15h2v2h-2z" /></svg>
+                                Par date (chronologique)
+                            </label>
+                            <input type="radio" id="group_by_action" name="group_by" value="action">
+                            <label for="group_by_action" class="btn-icon-left">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 12v-3a3 3 0 0 1 3 -3h13m-3 -3l3 3l-3 3" /><path d="M20 12v3a3 3 0 0 1 -3 3h-13m3 3l-3 -3l3 -3" /></svg>
+                                Par type d'action
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carte 2 : Export -->
+                <div class="content-card rapport-card">
+                    <h3 class="card-title-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="card-title-svg" viewBox="0 -960 960 960"><path d="M480-480ZM202-65l-56-57 118-118h-90v-80h226v226h-80v-89L202-65Zm278-15v-80h240v-440H520v-200H240v400h-80v-400q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H480Z"/></svg>
+                        2. Exporter le rapport
+                    </h3>
+                    <div class="form-group">
+                        <h4 class="form-subtitle">CHOISIR LE TYPE D'EXPORT SOUHAITÉ</h4>
+                        <div class="segmented-control export-control">
+                            <button type="submit" name="format" value="excel" class="segmented-label btn-icon-left">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M4 15l4 6" /><path d="M4 21l4 -6" /><path d="M17 20.25c0 .414 .336 .75 .75 .75h1.25a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-1a1 1 0 0 1 -1 -1v-1a1 1 0 0 1 1 -1h1.25a.75 .75 0 0 1 .75 .75" /><path d="M11 15v6h3" /></svg>
+                                Exporter en Excel
+                            </button>
+                            
+                            <button type="submit" name="format" value="pdf" class="segmented-label btn-icon-left">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="btn-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4" /><path d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6" /><path d="M17 18h2" /><path d="M20 15h-3v6" /><path d="M11 15v6h1a2 2 0 0 0 2 -2v-2a2 2 0 0 0 -2 -2h-1z" /></svg>
+                                Exporter en PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Colonne de droite : Aperçu (RESTAURÉE) -->
+            <div class="rapports-preview-col">
+                <div class="content-card">
+                    <h3 class="card-title-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="card-title-svg" viewBox="0 -960 960 960"><path d="M200-200v-560 203-3 360Zm0 80q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160v147q-19-9-39-15t-41-9v-89L646-760H200v560h252q7 22 16.5 42t22.5 38H200Zm242-126q-1-9-1.5-17.5T440-281q0-54 20-104t58-89q-9-3-18.5-4.5T480-480q-50 0-85 35t-35 85q0 39 22.5 70.5T442-246ZM720-80q-83 0-141.5-58.5T520-280q0-83 58.5-141.5T720-480q83 0 141.5 58.5T920-280q0 83-58.5 141.5T720-80Zm20-208v-112h-40v128l87 87 28-28-75-75ZM240-560h360v-160H240v160Z"/></svg>
+                        Dernières activités enregistrées
+                    </h3>
+                    {% if dernieres_actions %}
+                        <ul class="history-preview-list">
+                            {% for action in dernieres_actions %}
+                                <li class="history-preview-item">
+                                    <div class="history-preview-header">
+                                        <div class="history-preview-date">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="history-preview-icon" viewBox="0 -960 960 960"><path d="M360-300q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Z"/></svg>
+                                            <span>{{ action.timestamp | strftime('%d/%m/%Y') }}</span>
+                                        </div>
+                                        <div class="history-preview-time">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="history-preview-icon" viewBox="0 -960 960 960"><path d="M582-298 440-440v-200h80v167l118 118-56 57ZM440-720v-80h80v80h-80Zm280 280v-80h80v80h-80ZM440-160v-80h80v80h-80ZM160-440v-80h80v80h-80ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+                                            <span>{{ action.timestamp | strftime('%H:%M') }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="history-preview-body">
+                                        <span class="history-preview-action">{{ action.action }}</span>
+                                        <span class="history-preview-object">{{ action.objet_nom }}</span>
+                                    </div>
+                                    <div class="history-preview-footer">
+                                        par {{ action.nom_utilisateur }}
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-discret">Aucune activité enregistrée pour le moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+    {% include 'footer.html' %}
+</body>
+</html>

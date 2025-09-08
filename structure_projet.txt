@@ -1,0 +1,119 @@
+Structure du dossier pour le volume HDD2
+Le num‚ro de s‚rie du volume est B81F-CBF5
+E:.
+|   app.py
+|   app_old.py
+|   base-ok.sqbpro
+|   base-old.db
+|   base.sqbpro
+|   base_dev.db
+|   GestionLabo.spec
+|   keygen_ui.py
+|   main.exe
+|   Manuel-Utilisateur.pdf
+|   Mode-Emploi.docx
+|   README.md
+|   requirements.txt
+|   run.bat
+|   schema.sql
+|   schema_base.db
+|   structure_projet.txt
+|   
++---static
+|   |   logo.png
+|   |   
+|   +---css
+|   |       style.css
+|   |       
+|   +---fds
+|   +---icons
+|   |       ajout.png
+|   |       by-nc-nd.eu.svg
+|   |       cart-grey.svg
+|   |       cart-orange.svg
+|   |       cart-red.svg
+|   |       favicon.ico
+|   |       
+|   +---images
+|   |   |   Cc_by-nc-nd_icon.svg
+|   |   |   
+|   |   +---fournisseurs
+|   |   |       biolab.jpg
+|   |   |       images.png
+|   |   |       logo.gif
+|   |   |       logo_sordalab.png
+|   |   |       
+|   |   \---objets
+|   |           16006587-lame_couvre_objet_pour_microscope.jpg
+|   |           395000.webp
+|   |           Appareil_de_Berlese.jpg
+|   |           baguette-verre.jpg
+|   |           becher-forme-basse.jpg
+|   |           coton.jpeg
+|   |           couelle.jpg
+|   |           Cuve_cuvette_a_dissection.jpg
+|   |           d029acf1-fc4f-4c57-a2c7-cd8970ee2f44.avif
+|   |           dd7bc02d-1c1e-4ad9-a211-931169ee470c.avif
+|   |           e469ec17-a6da-4e4d-b488-d034edf2ab04.avif
+|   |           entonnoir.jpg
+|   |           fehling.png
+|   |           imagemagic.jpeg
+|   |           lame.jpg
+|   |           lames-oignon.webp
+|   |           mortier.jpeg
+|   |           pilon.webp
+|   |           racine_jacinthe_cl_mitoses_he_small.jpg
+|   |           shopping.webp
+|   |           sonde-cannelee.jpg
+|   |           tube-a-essai-en-verre-borosilicate-3-3-type-1-011753150-product_zoom-1-300x300.jpg
+|   |           verre-montre.jpg
+|   |           vert-de-methyle-acetique-125-ml.jpg
+|   |           
+|   \---js
+|       |   script.js
+|       |   
+|       \---modules
+|               booking-modal.js
+|               calendar-daily.js
+|               calendar-monthly.js
+|               cart-summary.js
+|               
+\---templates
+        admin.html
+        admin_echeances.html
+        admin_fournisseurs.html
+        admin_kits.html
+        admin_kit_modifier
+        admin_kit_modifier.html
+        admin_utilisateurs.html
+        alertes.html
+        armoire.html
+        a_propos.html
+        budget.html
+        budget_voir.html
+        calendrier.html
+        categorie.html
+        footer.html
+        fournisseurs.html
+        gestion_armoires.html
+        gestion_categories.html
+        header.html
+        index.html
+        inventaire.html
+        login.html
+        modale_objet.html
+        objet_details.html
+        panier.html
+        profil.html
+        rapports.html
+        register.html
+        setup.html
+        vue_jour.html
+        _add_object_modal.html
+        _inventaire_content.html
+        _modale_danger.html
+        _modale_suggestion.html
+        _modals.html
+        _pagination.html
+        _table_objets.html
+        

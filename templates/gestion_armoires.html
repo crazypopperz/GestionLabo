@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Armoires</title>
+    <!-- LIGNE AJOUTÉE : Rendre le jeton CSRF disponible pour JavaScript -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="main-container">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="management-header">
+            <h2 class="page-title">
+                <svg xmlns="http://www.w3.org/2000/svg" class="page-title-icon" viewBox="0 -960 960 960"><path d="M360-440q-17 0-28.5-11.5T320-480q0-17 11.5-28.5T360-520q17 0 28.5 11.5T400-480q0 17-11.5 28.5T360-440Zm240 0q-17 0-28.5-11.5T560-480q0-17 11.5-28.5T600-520q17 0 28.5 11.5T640-480q0 17-11.5 28.5T600-440ZM120-120v-80h40v-560q0-33 23.5-56.5T240-840h480q33 0 56.5 23.5T800-760v560h40v80H120Zm120-80h200v-560H240v560Zm280 0h200v-560H520v560Zm-40-320Z"/></svg>
+                <span>Gestion des Armoires</span>
+            </h2>
+        </div>
+
+        <div class="page-actions-container">
+            <form action="{{ url_for('ajouter') }}" method="post" class="add-inline-form">
+			<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="type" value="armoire">
+                <input type="text" name="nom" placeholder="Nom de la nouvelle armoire..." required>
+                <button type="submit" title="Ajouter">+</button>
+            </form>
+        </div>
+
+        <div class="card-container management-page">
+                        {% for armoire in armoires %}
+            <div class="item-card">
+                <div class="card-info">
+                    <a href="{{ url_for('voir_armoire', id=armoire.id) }}" class="card-title-link">
+                        <span class="card-title">{{ armoire.nom }}</span>
+                    </a>
+                    <span class="card-count">
+						{% if armoire.count == 0 %}Aucun objet
+						{% elif armoire.count == 1 %}1 objet
+						{% else %}{{ armoire.count }} objets
+						{% endif %}
+					</span>
+                </div>
+                <div class="edit-mode" style="display: none;">
+                    <input type="text" value="{{ armoire.nom }}" class="edit-input">
+                    <button class="save-btn" data-id="{{ armoire.id }}" title="Enregistrer">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>
+                    </button>
+                    <button class="cancel-btn" title="Annuler">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
+                    </button>
+                </div>
+                <div class="card-actions">
+                    <a href="{{ url_for('voir_armoire', id=armoire.id) }}" title="Voir le contenu">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M260-320q47 0 91.5 10.5T440-278v-394q-41-24-87-36t-93-12q-36 0-71.5 7T120-692v396q35-12 69.5-18t70.5-6Zm260 42q44-21 88.5-31.5T700-320q36 0 70.5 6t69.5 18v-396q-33-14-68.5-21t-71.5-7q-47 0-93 12t-87 36v394Zm-40 118q-48-38-104-59t-116-21q-42 0-82.5 11T100-198q-21 11-40.5-1T40-234v-482q0-11 5.5-21T62-752q46-24 96-36t102-12q58 0 113.5 15T480-740q51-30 106.5-45T700-800q52 0 102 12t96 36q11 5 16.5 15t5.5 21v482q0 23-19.5 35t-40.5 1q-37-20-77.5-31T700-240q-60 0-116 21t-104 59ZM280-494Z"/></svg>
+                    </a>
+                    {% if session.user_role == 'admin' %}
+                    <span class="edit-btn" title="Modifier le nom">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M167-120q-21 5-36.5-10.5T120-167l40-191 198 198-191 40Zm191-40L160-358l458-458q23-23 57-23t57 23l84 84q23 23 23 57t-23 57L358-160Zm317-600L261-346l85 85 414-414-85-85Z"/></svg>
+                    </span>
+                    <form action="{{ url_for('supprimer', type_objet='armoire', id=armoire.id) }}" method="post" class="delete-form-interactive" data-item-type="armoire" data-item-name="{{ armoire.nom }}">
+					<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="delete-btn" title="Supprimer">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+                <p>Aucune armoire n'a été créée pour le moment.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% include '_modale_danger.html' %}
+	{% include 'footer.html' %}
+
+    {% if session.user_role == 'admin' %}
+    <div id="reassign-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3 id="modal-title">Déplacer les objets</h3>
+            <p id="modal-description">Avant de supprimer cet élément, veuillez réassigner les objets qu'il contient :</p>
+            <div id="modal-objects-list" class="modal-objects-list"></div>
+            <div class="modal-actions">
+                <button id="modal-cancel-btn" class="btn-secondary">Annuler</button>
+                <button id="modal-confirm-btn" class="btn-primary">Valider et Supprimer</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</body>
+</html>

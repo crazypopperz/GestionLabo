@@ -1,0 +1,99 @@
+<table class="objet-table">
+    <thead>
+        <tr>
+            {% if session.user_role == 'admin' and pagination.endpoint != 'inventaire' %}<th class="checkbox-column"><input type="checkbox" id="select-all-checkbox" title="Tout sélectionner"></th>{% endif %}
+            
+            {% set next_direction = 'desc' if sort_by == 'nom' and direction == 'asc' else 'asc' %}
+            <th class="sortable {% if sort_by == 'nom' %}th-sort-{{ direction }}{% endif %}">
+                <a href="{{ url_for(pagination.endpoint, id=pagination.id, page=pagination.page, sort_by='nom', direction=next_direction, q=request.args.get('q'), armoire=request.args.get('armoire'), categorie=request.args.get('categorie'), etat=request.args.get('etat')) }}">Nom</a>
+            </th>
+
+            {% set next_direction = 'desc' if sort_by == 'quantite' and direction == 'asc' else 'asc' %}
+            <th class="sortable {% if sort_by == 'quantite' %}th-sort-{{ direction }}{% endif %}">
+                <a href="{{ url_for(pagination.endpoint, id=pagination.id, page=pagination.page, sort_by='quantite', direction=next_direction, q=request.args.get('q'), armoire=request.args.get('armoire'), categorie=request.args.get('categorie'), etat=request.args.get('etat')) }}">Quantité</a>
+            </th>
+
+            {% set next_direction = 'desc' if sort_by == 'seuil' and direction == 'asc' else 'asc' %}
+            <th class="sortable {% if sort_by == 'seuil' %}th-sort-{{ direction }}{% endif %}">
+                <a href="{{ url_for(pagination.endpoint, id=pagination.id, page=pagination.page, sort_by='seuil', direction=next_direction, q=request.args.get('q'), armoire=request.args.get('armoire'), categorie=request.args.get('categorie'), etat=request.args.get('etat')) }}">Seuil</a>
+            </th>
+
+            {% set next_direction = 'desc' if sort_by == 'date_peremption' and direction == 'asc' else 'asc' %}
+            <th class="sortable {% if sort_by == 'date_peremption' %}th-sort-{{ direction }}{% endif %}">
+                <a href="{{ url_for(pagination.endpoint, id=pagination.id, page=pagination.page, sort_by='date_peremption', direction=next_direction, q=request.args.get('q'), armoire=request.args.get('armoire'), categorie=request.args.get('categorie'), etat=request.args.get('etat')) }}">Péremption</a>
+            </th>
+
+            {% set next_direction = 'desc' if sort_by == 'armoire' and direction == 'asc' else 'asc' %}
+            <th class="sortable {% if sort_by == 'armoire' %}th-sort-{{ direction }}{% endif %}">
+                <a href="{{ url_for(pagination.endpoint, id=pagination.id, page=pagination.page, sort_by='armoire', direction=next_direction, q=request.args.get('q'), armoire=request.args.get('armoire'), categorie=request.args.get('categorie'), etat=request.args.get('etat')) }}">Armoire</a>
+            </th>
+
+            {% set next_direction = 'desc' if sort_by == 'categorie' and direction == 'asc' else 'asc' %}
+            <th class="sortable {% if sort_by == 'categorie' %}th-sort-{{ direction }}{% endif %}">
+                <a href="{{ url_for(pagination.endpoint, id=pagination.id, page=pagination.page, sort_by='categorie', direction=next_direction, q=request.args.get('q'), armoire=request.args.get('armoire'), categorie=request.args.get('categorie'), etat=request.args.get('etat')) }}">Catégorie</a>
+            </th>
+            
+            <th>Image</th>
+            <th>État</th>
+            {% if session.user_id %}<th>Actions</th>{% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for objet in objets %}
+        {% set perime, perime_bientot, statut = False, False, 'ok' %}
+        {% if objet.date_peremption %}
+            {% set date_peremption_obj = date_actuelle.strptime(objet.date_peremption, '%Y-%m-%d') %}
+            {% if date_peremption_obj < date_actuelle %}{% set perime, statut = True, 'perime' %}
+            {% elif (date_peremption_obj - date_actuelle).days <= 30 %}{% set perime_bientot, statut = True, 'bientot' %}
+            {% endif %}
+        {% endif %}
+        {% if statut == 'ok' and objet.quantite_disponible <= objet.seuil %}{% set statut = 'stock' %}{% endif %}
+
+        <tr class="{{ 'row-perime' if perime else 'row-perime-bientot' if perime_bientot }}" data-objet-id="{{ objet.id }}">
+            {% if session.user_role == 'admin' and pagination.endpoint != 'inventaire' %}<td class="checkbox-column"><input type="checkbox" class="objet-checkbox" data-id="{{ objet.id }}"></td>{% endif %}
+            <td data-field="nom"><a href="{{ url_for('voir_objet', objet_id=objet.id) }}">{{ objet.nom }}</a></td>
+            <td data-field="quantite">{{ objet.quantite_disponible }}</td>
+            <td data-field="seuil">{{ objet.seuil }}</td>
+            <td data-field="date_peremption" class="{{ 'texte-perime' if perime else 'texte-perime-bientot' if perime_bientot }}">{{ date_peremption_obj.strftime('%d/%m/%Y') if objet.date_peremption }}</td>
+            <td data-field="armoire">{{ objet.armoire }}</td>
+            <td data-field="categorie">{{ objet.categorie }}</td>
+            <td class="image-cell">
+                {% if objet.image %}
+                <div class="image-preview-wrapper">
+                    <img src="{{ url_for('serve_image', filename=objet.image) }}" class="image-objet-thumbnail" alt="Image de {{ objet.nom }}">
+                    <img src="{{ url_for('serve_image', filename=objet.image) }}" class="image-objet-preview" alt="Aperçu de {{ objet.nom }}">
+                </div>
+                {% endif %}
+            </td>
+            <td data-type="alerte" data-alerte-status="{{ statut }}">
+                {% if statut == 'perime' %}<span class="texte-perime" title="Produit périmé. A recycler !"><svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" viewBox="0 -960 960 960"><path d="M240-80v-170q-39-17-68.5-45.5t-50-64.5q-20.5-36-31-77T80-520q0-158 112-259t288-101q176 0 288 101t112 259q0 42-10.5 83t-31 77q-20.5 36-50 64.5T720-250v170H240Zm80-80h40v-80h80v80h80v-80h80v80h40v-142q38-9 67.5-30t50-50q20.5-29 31.5-64t11-74q0-125-88.5-202.5T480-800q-143 0-231.5 77.5T160-520q0 39 11 74t31.5 64q20.5 29 50.5 50t67 30v142Zm100-200h120l-60-120-60 120Zm-80-80q33 0 56.5-23.5T420-520q0-33-23.5-56.5T340-600q-33 0-56.5 23.5T260-520q0 33 23.5 56.5T340-440Zm280 0q33 0 56.5-23.5T700-520q0-33-23.5-56.5T620-600q-33 0-56.5 23.5T540-520q0 33 23.5 56.5T620-440ZM480-160Z"/></svg></span>{% elif statut == 'bientot' %}<span class="texte-perime-bientot" title="Expire bientôt"><svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" viewBox="0 -960 960 960"><path d="M480-520q66 0 113-47t47-113v-120H320v120q0 66 47 113t113 47ZM160-80v-80h80v-120q0-61 28.5-114.5T348-480q-51-32-79.5-85.5T240-680v-120h-80v-80h640v80h-80v120q0 61-28.5 114.5T612-480q51 32 79.5 85.5T720-280v120h80v80H160Z"/></svg></span>
+                {% elif statut == 'stock' %}<span class="texte-alerte" title="Stock bas"><svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" viewBox="0 -960 960 960"><path d="M320-80q-17 0-28.5-11.5T280-120v-640q0-17 11.5-28.5T320-800h80v-80h160v80h80q17 0 28.5 11.5T680-760v308q-22 6-42 15.5T600-414v-306H360v560h148q5 22 14.5 42T545-80H320Zm40-80Zm296 80-56-56 84-84-84-84 56-56 84 84 84-84 56 56-83 84 83 84-56 56-84-83-84 83Z"/></svg></span>
+                {% else %}<span class="texte-ok" title="OK"><svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" viewBox="0 -960 960 960"><path d="M320-80q-17 0-28.5-11.5T280-120v-640q0-17 11.5-28.5T320-800h80v-80h160v80h80q17 0 28.5 11.5T680-760v640q0 17-11.5 28.5T640-80H320Z"/></svg></span>
+                {% endif %}
+            </td>
+            {% if session.user_id %}
+            <td>
+                <button class="btn-action edit-objet-btn"
+                        data-objet-id="{{ objet.id }}"
+                        data-armoire-id="{{ objet.armoire_id }}"
+                        data-categorie-id="{{ objet.categorie_id }}"
+                        data-nom="{{ objet.nom }}"
+                        data-quantite="{{ objet.quantite_physique }}"
+                        data-seuil="{{ objet.seuil }}"
+                        data-date-peremption="{{ objet.date_peremption or '' }}"
+                        data-image-url="{{ url_for('serve_image', filename=objet.image) if objet.image else '' }}"
+                        data-modal-trigger="add-object-modal">
+                    Modifier
+                </button>
+				{% if session.user_role == 'admin' %}
+				<form class="form-in-cell" action="{{ url_for('supprimer_objet', id_objet=objet.id) }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement l\'objet \'{{ objet.nom }}\' ? Cette action est irréversible.');">
+					<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+					<button type="submit" class="btn-action btn-danger">Supprimer</button>
+				</form>
+				{% endif %}
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

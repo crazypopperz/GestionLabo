@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Créer un Compte - GMLCL</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="main-container">
+        <div class="setup-form-container">
+            <form class="setup-form" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <!-- On ajoute le logo et un titre adapté -->
+                <div class="setup-header">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo GMLCL" class="setup-logo">
+                    <h1>Créer un Nouveau Compte</h1>
+                    <p class="form-subtitle" style="text-align: center;">Ce compte aura un accès standard à l'application.</p>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur :</label>
+                    <input type="text" id="username" name="username" required placeholder="Choisissez un nom d'utilisateur">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe :</label>
+                    <input type="password" id="password" name="password" required placeholder="Choisissez un mot de passe">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Adresse e-mail :</label>
+                    <input type="email" id="email" name="email" required placeholder="Votre adresse e-mail">
+                </div>
+
+                <button type="submit" class="btn-action btn-full-width">Créer le compte</button>
+
+                <p class="form-switch-link" style="margin-top: 15px;">
+                    Vous avez déjà un compte ? <a href="{{ url_for('login') }}">Connectez-vous</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

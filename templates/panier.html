@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mon Panier de Réservation</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/modules/cart-summary.js') }}" defer></script>
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="main-container">
+
+        <div class="page-title">
+            <svg class="page-title-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.21 9l-4.38-6.56c-.19-.28-.51-.42-.83-.42-.32 0-.64.14-.83.43L6.79 9H2c-.55 0-1 .45-1 1 0 .09.01.18.04.27l2.54 9.27c.23.84 1 1.46 1.92 1.46h13c.92 0 1.69-.62 1.93-1.46l2.54-9.27L23 10c0-.55-.45-1-1-1h-4.79zM9 9l3-4.4L15 9H9zm10 12H5.04c-.47 0-.85-.34-.96-.81L1.92 11h1.95l.63 2.27c.22.81 1.01 1.32 1.87 1.22.87-.1 1.46-.8 1.32-1.67L6.85 11h10.3l-1.14 4.82c-.14.87.45 1.67 1.32 1.67.86.1 1.65-.42 1.87-1.22L19.96 11h1.92l-2.16 9.19c-.11.47-.5.81-.97.81z"/></svg>
+            <span>Mon Panier de Réservation</span>
+        </div>
+
+        <div class="content-card">
+            <div id="cart-summary-list">
+                <!-- Le contenu du panier sera généré ici par JavaScript -->
+            </div>
+            <div id="cart-actions" class="modal-actions" style="display: none;">
+                 <button id="clear-cart-btn" class="btn-action btn-danger">Vider le panier</button>
+                 <button id="confirm-cart-btn" class="btn-action">Confirmer les réservations</button>
+            </div>
+        </div>
+
+    </div>
+	{% include '_modals.html' %}
+    {% include 'footer.html' %}
+</body>
+</html>

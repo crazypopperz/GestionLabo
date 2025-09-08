@@ -1,0 +1,159 @@
+<!-- Fichier : templates/admin.html (Version Finale, Propre et Structurée) -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Panneau d'Administration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="main-container">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+		{% endwith %}
+
+        <div class="management-header">
+			<h2 class="page-title">
+				<svg class="page-title-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/></svg>
+				<span class="page-title-text">Panneau d'Administration</span>
+			</h2>
+		</div>
+        <div class="info-box">
+			<svg class="info-box-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M480-680q-33 0-56.5-23.5T400-760q0-33 23.5-56.5T480-840q33 0 56.5 23.5T560-760q0 33-23.5 56.5T480-680Zm-60 560v-480h120v480H420Z"/></svg>
+			<p>Cette section vous permet d'effectuer des opérations de maintenance et de gestion sur l'ensemble de l'application.</p>
+		</div>
+
+        <!-- ================================================================= -->
+        <!-- GROUPE 1 : GESTION QUOTIDIENNE -->
+        <!-- ================================================================= -->
+        <div class="admin-section-group">
+            <h3 class="management-header">Gestion Quotidienne</h3>
+            <div class="admin-sections">
+                <div class="admin-card">
+                    <h4>
+                        <svg class="admin-card-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113ZM120-240h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0 320Zm0-400Z"/></svg>
+                        <span>Gestion des Utilisateurs</span>
+                    </h4>
+                    <p>Ajoutez, supprimez ou modifiez les comptes utilisateurs et leurs permissions.</p>
+                    <div class="admin-actions">
+                        <a href="{{ url_for('gestion_utilisateurs') }}" class="btn-action btn-full-width">Gérer les utilisateurs</a>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h4>
+                        <svg class="admin-card-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M480-400ZM80-160v-400q0-33 23.5-56.5T160-640h120v-80q0-33 23.5-56.5T360-800h240q33 0 56.5 23.5T680-720v80h120q33 0 56.5 23.5T880-560v400H80Zm240-200v40h-80v-40h-80v120h640v-120h-80v40h-80v-40H320ZM160-560v120h80v-40h80v40h320v-40h80v40h80v-120H160Zm200-80h240v-80H360v80Z"/></svg>
+                        <span>Gestion des Kits</span>
+                    </h4>
+                    <p>Créez et configurez des kits de matériel prédéfinis pour faciliter les réservations.</p>
+                    <div class="admin-actions">
+                        <a href="{{ url_for('gestion_kits') }}" class="btn-action btn-full-width">Gérer les kits</a>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h4>
+                        <svg class="admin-card-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M199-40q-21 5-36.5-10.5T152-87l40-191 198 198-191 40Zm191-40L192-278l458-458q23-23 57-23t57 23l84 84q23 23 23 57t-23 57L390-80Zm317-600L293-266l85 85 414-414-85-85Z"/></svg>
+                        <span>Gestion des Échéances</span>
+                    </h4>
+                    <p>Définissez et suivez les dates importantes : maintenances, renouvellements de contrats, commandes groupées, etc.</p>
+                    <div class="admin-actions">
+                        <a href="{{ url_for('gestion_echeances') }}" class="btn-action btn-full-width">Gérer les échéances</a>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h4>
+                        <svg class="admin-card-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M280-160q-50 0-85-35t-35-85H60l18-80h113q17-19 40-29.5t49-10.5q26 0 49 10.5t40 29.5h167l84-360H182l4-17q6-28 27.5-45.5T264-800h456l-37 160h117l120 160-40 200h-80q0 50-35 85t-85 35q-50 0-85-35t-35-85H400q0 50-35 85t-85 35Zm357-280h193l4-21-74-99h-95l-28 120Zm-19-273 2-7-84 360 2-7 34-146 46-200ZM20-427l20-80h220l-20 80H20Zm80-146 20-80h260l-20 80H100Zm180 333q17 0 28.5-11.5T320-280q0-17-11.5-28.5T280-320q-17 0-28.5 11.5T240-280q0 17 11.5 28.5T280-240Zm400 0q17 0 28.5-11.5T720-280q0-17-11.5-28.5T680-320q-17 0-28.5 11.5T640-280q0 17 11.5 28.5T680-240Z"/></svg>
+                        <span>Fournisseurs</span>
+                    </h4>
+                    <p>Consultez, ajoutez ou supprimez les fiches des fournisseurs référencés pour le laboratoire.</p>
+                    <div class="admin-actions">
+                        <a href="{{ url_for('gestion_fournisseurs') }}" class="btn-action btn-full-width">Gérer les fournisseurs</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-section-group">
+            <h3 class="management-header">Analyse et Exports</h3>
+            <div class="admin-sections">
+                <div class="admin-card">
+                    <h4>
+                        <svg class="admin-card-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="m105-399-65-47 200-320 120 140 160-260 120 180 135-214 65 47-198 314-119-179-152 247-121-141-145 233Zm475 159q42 0 71-29t29-71q0-42-29-71t-71-29q-42 0-71 29t-29 71q0 42 29 71t71 29ZM784-80 676-188q-21 14-45.5 21t-50.5 7q-75 0-127.5-52.5T400-340q0-75 52.5-127.5T580-520q75 0 127.5 52.5T760-340q0 26-7 50.5T732-244l108 108-56 56Z"/></svg>
+                        <span>Rapports d'Activité</span>
+                    </h4>
+                    <p>Générez des rapports détaillés sur l'utilisation du matériel, les réservations et l'historique des actions.</p>
+                    <div class="admin-actions">
+                        <a href="{{ url_for('rapports') }}" class="btn-action btn-full-width">Générer un rapport</a>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h4>
+                        <svg class="admin-card-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h160v-40h240v40h160q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm280-40q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm-160 0q17 0 28.5-11.5T360-280q0-17-11.5-28.5T320-320q-17 0-28.5 11.5T280-280q0 17 11.5 28.5T320-240Zm320 0q17 0 28.5-11.5T680-280q0-17-11.5-28.5T640-320q-17 0-28.5 11.5T600-280q0 17 11.5 28.5T640-240Z"/></svg>
+                        <span>Exporter l'Inventaire Complet</span>
+                    </h4>
+                    <p>Obtenez une liste complète de tous les objets, avec leur stock disponible actuel, au format PDF ou Excel.</p>
+                    <div class="admin-actions">
+                        <a href="{{ url_for('exporter_inventaire', format='pdf') }}" class="btn-action">Exporter en PDF</a>
+                        <a href="{{ url_for('exporter_inventaire', format='excel') }}" class="btn-action">Exporter en Excel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-section-group">
+            <h3 class="management-header">Administration du Système</h3>
+            <div class="admin-sections">
+                <div class="admin-card">
+                    <h4>
+                        <svg class="admin-card-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M480-80 200-260l56-56 224 224 424-424 56 56L480-80Z"/></svg>
+                        <span>Licence et Activation</span>
+                    </h4>
+                    <p>
+                        Statut : <strong style="color: {{ '#28a745' if licence.is_pro else '#f57f17' }};">{{ licence.statut }}</strong>.
+                        Identifiant d'Instance : <code id="instance-id-code" title="Cliquez pour copier">{{ licence.instance_id }}</code>
+                    </p>
+                    <div class="admin-actions">
+                        {% if not licence.is_pro %}
+                        <form action="{{ url_for('activer_licence') }}" method="post" class="import-form" style="width: 100%;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="text" name="licence_cle" placeholder="Entrez votre clé de licence Pro" required style="flex-grow: 1;">
+                            <button type="submit" class="btn-action">Activer</button>
+                        </form>
+                        {% else %}
+                        <button class="btn-action btn-secondary" data-modal-trigger="reset-licence-modal" style="margin-left: auto;">Réinitialiser la Licence</button>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h4>
+                        <svg class="admin-card-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M480-120q-151 0-255.5-46.5T120-280v-400q0-66 105.5-113T480-840q149 0 254.5 47T840-680v400q0 67-104.5 113.5T480-120Zm0-479q89 0 179-25.5T760-679q-11-29-100.5-55T480-760q-91 0-178.5 25.5T200-679q14 30 101.5 55T480-599Zm0 199q42 0 81-4t74.5-11.5q35.5-7.5 67-18.5t57.5-25v-120q-26 14-57.5 25t-67 18.5Q600-528 561-524t-81 4q-42 0-82-4t-75.5-11.5Q287-543 256-554t-56-25v120q25 14 56 25t66.5 18.5Q358-408 398-404t82 4Zm0 200q46 0 93.5-7t87.5-18.5q40-11.5 67-26t32-29.5v-98q-26 14-57.5 25t-67 18.5Q600-328 561-324t-81 4q-42 0-82-4t-75.5-11.5Q287-343 256-354t-56-25v99q5 15 31.5 29t66.5 25.5q40 11.5 88 18.5t94 7Z"/></svg>
+                        <span>Base de Données</span>
+                    </h4>
+                    <p>Sauvegardez ou restaurez l'intégralité de votre base de données.</p>
+                    <div class="warning">
+                        <strong>Attention :</strong> L'importation d'un fichier écrasera toutes les données actuelles.
+                    </div>
+                    <div class="admin-actions db-actions">
+                        <a href="{{ url_for('telecharger_db') }}" class="btn-action {% if not licence.is_pro %}btn-disabled{% endif %}" {% if not licence.is_pro %}onclick="return false;" title="Fonctionnalité Pro"{% endif %}>Sauvegarder la BDD</a>
+                        <form action="{{ url_for('importer_db') }}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="file" name="fichier" id="fichier-db" class="input-file-admin" accept=".db">
+                            <label for="fichier-db" class="btn-action">Importer une BDD</label>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include '_modals.html' %}
+	{% include 'footer.html' %}
+</body>
+</html>

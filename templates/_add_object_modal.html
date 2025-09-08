@@ -1,0 +1,59 @@
+<div id="add-object-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3 class="modal-title-with-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="modal-icon" viewBox="0 -960 960 960"><path d="M440-280h80v-120h120v-80H520v-120h-80v120H320v80h120v120ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Z"/></svg>
+                Ajouter un Nouvel Objet
+            </h3>
+            <button class="close-btn">×</button>
+        </div>
+        <form action="{{ url_for('ajouter_objet') }}" method="post" enctype="multipart/form-data" class="modal-form">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-grid">
+                <div class="form-column">
+                    <label for="nom">Nom de l'objet</label>
+                    <input type="text" id="nom" name="nom" required>
+
+                    <label for="armoire_id">Armoire de rangement</label>
+                    <select id="armoire_id" name="armoire_id" required>
+                        {% for armoire in armoires %}
+                            <option value="{{ armoire.id }}">{{ armoire.nom }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="categorie_id">Catégorie</label>
+                    <select id="categorie_id" name="categorie_id" required>
+                        {% for categorie in categories %}
+                            <option value="{{ categorie.id }}">{{ categorie.nom }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <label for="fds_id">Fiche de Données de Sécurité (Optionnel)</label>
+                    <select id="fds_id" name="fds_id">
+                        <option value="">Aucune</option>
+                        {% for fds in fds_list %}
+                            <option value="{{ fds.id }}">{{ fds.nom_original }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-column">
+                    <label for="quantite">Quantité initiale</label>
+                    <input type="number" id="quantite" name="quantite" value="1" min="0" required>
+
+                    <label for="seuil">Seuil d'alerte stock bas</label>
+                    <input type="number" id="seuil" name="seuil" value="0" min="0" required>
+                    
+                    <label for="date_peremption">Date de péremption (Optionnel)</label>
+                    <input type="date" id="date_peremption" name="date_peremption">
+
+                    <label for="image">Image (Optionnel)</label>
+                    <input type="file" id="image" name="image" class="custom-file-input">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-action">Annuler</button>
+                <button type="submit" class="btn-action">Ajouter l'objet</button>
+            </div>
+        </form>
+    </div>
+</div>

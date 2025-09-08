@@ -1,0 +1,23 @@
+{# templates/_pagination.html #}
+{% if pagination.total_pages > 1 %}
+<nav aria-label="Pagination">
+    <ul class="pagination">
+        {# Bouton Précédent #}
+        <li class="page-item {% if pagination.page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for(pagination.endpoint, id=pagination.id, page=pagination.page - 1, sort_by=sort_by, direction=direction, q=request.args.get('q'), armoire=request.args.get('armoire'), categorie=request.args.get('categorie'), etat=request.args.get('etat')) if pagination.page > 1 else '#' }}">Précédent</a>
+        </li>
+
+        {# Liens des pages #}
+        {% for p in range(1, pagination.total_pages + 1) %}
+            <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for(pagination.endpoint, id=pagination.id, page=p, sort_by=sort_by, direction=direction, q=request.args.get('q'), armoire=request.args.get('armoire'), categorie=request.args.get('categorie'), etat=request.args.get('etat')) }}">{{ p }}</a>
+            </li>
+        {% endfor %}
+
+        {# Bouton Suivant #}
+        <li class="page-item {% if pagination.page == pagination.total_pages %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for(pagination.endpoint, id=pagination.id, page=pagination.page + 1, sort_by=sort_by, direction=direction, q=request.args.get('q'), armoire=request.args.get('armoire'), categorie=request.args.get('categorie'), etat=request.args.get('etat')) if pagination.page < pagination.total_pages else '#' }}">Suivant</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}

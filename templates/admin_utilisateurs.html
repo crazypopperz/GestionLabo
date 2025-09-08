@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Utilisateurs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+</head>
+<body class="page-admin-utilisateurs">
+    {% include 'header.html' %}
+    <div class="main-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="table-header">
+            <h2 class="page-title">
+                <svg class="page-title-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q62 0 126 15.5T736-378q29 15.5 46.5 44T800-272v112H160Z"/></svg>
+                <span>Gestion des Utilisateurs</span>
+            </h2>
+        </div>
+
+        <table class="objet-table">
+            <thead>
+                <tr>
+                    <th>Nom d'utilisateur</th>
+                    <th>E-mail</th>
+                    <th>Rôle</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+                            <tbody>
+                {% for user in utilisateurs %}
+                <tr>
+                    <td>{{ user.nom_utilisateur }}</td>
+                    <td>{{ user.email or 'Non défini' }}</td>
+                    <td>
+                        <span class="role-tag role-{{ user.role }}">{{ user.role }}</span>
+                    </td>
+                    <td class="actions-cell">
+                        <button class="btn-action btn-icon-only"
+                                title="Modifier l'e-mail"
+                                data-modal-trigger="edit-email-modal"
+                                data-action-url="{{ url_for('modifier_email_utilisateur', id_user=user.id) }}"
+                                data-form-username="{{ user.nom_utilisateur }}"
+                                data-form-email="{{ user.email or '' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" ><path d="M638-80 468-250l56-56 114 114 226-226 56 56L638-80ZM480-520l320-200H160l320 200Zm0 80L160-640v400h206l80 80H160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v174l-80 80v-174L480-440Zm0 0Zm0-80Zm0 80Z"/></svg>
+                        </button>
+
+                        {% if user.role != 'admin' %}
+                            <button class="btn-action btn-icon-only"
+                                    title="Promouvoir Admin"
+                                    data-modal-trigger="promote-modal"
+                                    data-action-url="{{ url_for('promouvoir_utilisateur', id_user=user.id) }}"
+                                    data-form-username="{{ user.nom_utilisateur }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M200-160v-80h560v80H200Zm0-140-51-321q-2 0-4.5.5t-4.5.5q-25 0-42.5-17.5T80-680q0-25 17.5-42.5T140-740q25 0 42.5 17.5T200-680q0 7-1.5 13t-3.5 11l125 56 125-171q-11-8-18-21t-7-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820q0 15-7 28t-18 21l125 171 125-56q-2-5-3.5-11t-1.5-13q0-25 17.5-42.5T820-740q25 0 42.5 17.5T880-680q0 25-17.5 42.5T820-620q-2 0-4.5-.5t-4.5-.5l-51 321H200Zm68-80h424l26-167-105 46-133-183-133 183-105-46 26 167Zm212 0Z"/></svg>
+                            </button>
+                        {% endif %}
+
+                        <button class="btn-action btn-icon-only"
+                                title="Réinitialiser le mot de passe"
+                                data-modal-trigger="reset-password-modal"
+                                data-action-url="{{ url_for('reinitialiser_mdp', id_user=user.id) }}"
+                                data-form-username="{{ user.nom_utilisateur }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" ><path d="M280-400q-33 0-56.5-23.5T200-480q0-33 23.5-56.5T280-560q33 0 56.5 23.5T360-480q0 33-23.5 56.5T280-400Zm0 160q-100 0-170-70T40-480q0-100 70-170t170-70q67 0 121.5 33t86.5 87h352l120 120-180 180-80-60-80 60-85-60h-47q-32 54-86.5 87T280-240Zm0-80q56 0 98.5-34t56.5-86h125l58 41 82-61 71 55 75-75-40-40H435q-14-52-56.5-86T280-640q-66 0-113 47t-47 113q0 66 47 113t113 47Z"/></svg>
+                        </button>
+
+                        {% if user.id != session.user_id %}
+                            <button class="btn-action btn-icon-only"
+                                    title="Supprimer l'utilisateur"
+                                    data-modal-trigger="delete-user-modal"
+                                    data-action-url="{{ url_for('supprimer_utilisateur', id_user=user.id) }}"
+                                    data-form-username="{{ user.nom_utilisateur }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" ><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+                            </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+	<div id="edit-email-modal" class="modal-overlay" style="display: none;">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h3 class="modal-title-with-icon">Modifier l'e-mail de <strong id="username"></strong></h3>
+				<button class="close-btn">×</button>
+			</div>
+			<form action="" method="post" class="modal-form">
+			<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+				<label for="email">Nouvelle adresse e-mail :</label>
+				<input type="email" id="email" name="email" required>
+				<div class="modal-actions">
+					<button type="button" class="btn-action btn-cancel">Annuler</button>
+					<button type="submit" class="btn-action">Enregistrer</button>
+				</div>
+			</form>
+		</div>
+	</div>
+    <!-- Modale de confirmation pour la passation de pouvoir -->
+    <div id="promote-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <form action="" method="POST" class="modal-form">
+			<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h3 class="modal-title-with-icon">Promouvoir <strong id="username"></strong> Admin</h3>
+                    <button type="button" class="close-btn">×</button>
+                </div>
+                <p style="padding: 0 25px; line-height: 1.6;">
+                    <strong class="texte-alerte">Attention, cette action est irréversible.</strong> Votre compte sera rétrogradé au rôle d'utilisateur.
+                </p>
+                <div style="padding: 0 25px 25px 25px;">
+                    <label for="admin_password_promote">Pour confirmer, entrez votre mot de passe :</label>
+                    <input type="password" name="password" id="admin_password_promote" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-action btn-cancel">Annuler</button>
+                    <button type="submit" class="btn-action">Confirmer la passation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <!-- Modale pour réinitialiser le mot de passe -->
+    <div id="reset-password-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <form action="" method="POST" class="modal-form">
+			<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h3 class="modal-title-with-icon">Réinitialiser le mot de passe de <strong id="username"></strong></h3>
+                    <button type="button" class="close-btn">×</button>
+                </div>
+                <div style="padding: 0 25px 25px 25px;">
+                    <label for="nouveau_mot_de_passe">Entrez le nouveau mot de passe temporaire :</label>
+                    <input type="password" name="nouveau_mot_de_passe" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-action btn-cancel">Annuler</button>
+                    <button type="submit" class="btn-action">Définir le nouveau mot de passe</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale pour supprimer un utilisateur -->
+    <div id="delete-user-modal" class="modal-overlay" style="display: none;">
+		<div class="modal-content modal-danger">
+			<form action="" method="POST" class="modal-form" data-username="">
+				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+				<div class="modal-header">
+					<h3 class="modal-title-with-icon">
+						<svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="m40-120 440-760 440 760H40Zm104-80h672L480-720 144-200Zm340.175-57q12.825 0 21.325-8.675 8.5-8.676 8.5-21.5 0-12.825-8.675-21.325-8.676-8.5-21.5-8.5-12.825 0-21.325 8.675-8.5 8.676-8.5 21.5 0 12.825 8.675 21.325 8.676 8.5 21.5 8.5ZM454-400h60v-240h-60v240Zm26-120Z"/></svg>
+						Suppression de l'utilisateur <strong id="username-placeholder"></strong>
+					</h3>
+					<button type="button" class="close-btn">×</button>
+				</div>
+				<div class="modal-danger-content">
+					<p>
+						<strong>Attention, cette action est définitive et irréversible.</strong>
+					</p>
+					<p>
+						Pour confirmer, veuillez retaper le nom de l'utilisateur : <strong id="username-to-match"></strong>
+					</p>
+					<input type="text" id="delete-confirm-input" name="confirmation_nom" autocomplete="off" required>
+					<small id="delete-error-message" class="delete-error-msg"></small>
+				</div>
+				<div class="modal-actions">
+					<button type="button" class="btn-action btn-secondary btn-cancel">Annuler</button>
+					<button type="submit" class="btn-action btn-danger">Je comprends, supprimer définitivement</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+    {% include 'footer.html' %}
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Échéances</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+</head>
+<body data-url-ajout-echeance="{{ url_for('ajouter_echeance') }}">
+    {% include 'header.html' %}
+    <div class="main-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="table-header">
+            <h2 class="page-title">
+                <svg class="page-title-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 19H5V8h14m-3-7v2H8V1H6v2H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1m-1 11h-5v5h5v-5Z"/></svg>
+                <span>Gestion des Échéances</span>
+            </h2>
+            <button class="btn-action" data-modal-trigger="echeance-modal">Ajouter une échéance</button>
+        </div>
+
+        <div class="content-card">
+            <div class="table-container">
+                <table class="objet-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 150px;">Date d'échéance</th>
+                            <th>Intitulé</th>
+                            <th>Détails</th>
+                            <th style="width: 100px;">Statut</th>
+                            <th style="width: 120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for echeance in echeances %}
+                        <tr class="{% if not echeance.traite and echeance.date_echeance < date_actuelle %}row-perime{% elif not echeance.traite and (echeance.date_echeance - date_actuelle).days < 30 %}row-perime-bientot{% endif %} {% if echeance.traite %}acquitte{% endif %}">
+                            <td>{{ echeance.date_echeance.strftime('%d/%m/%Y') }}</td>
+                            <td style="text-align: left; font-weight: 500;">{{ echeance.intitule }}</td>
+                            <td style="text-align: left;">{{ echeance.details or '' }}</td>
+                            <td>
+                                {% if echeance.traite %}
+                                    Traité
+                                {% else %}
+                                    En cours
+                                {% endif %}
+                            </td>
+                            <td class="actions-cell">
+                                <button class="btn-action btn-icon-only" 
+                                        title="Modifier cette échéance"
+                                        data-modal-trigger="echeance-modal"
+                                        data-echeance-id="{{ echeance.id }}"
+                                        data-form-intitule="{{ echeance.intitule | e }}"
+                                        data-form-date-echeance="{{ echeance.date_echeance.strftime('%Y-%m-%d') }}"
+                                        data-form-details="{{ echeance.details | e }}"
+                                        data-form-traite="{{ echeance.traite }}">
+                                    <svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.13,5.12L18.88,8.87M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z" /></svg>
+                                </button>
+                                <form class="form-in-cell" action="{{ url_for('supprimer_echeance', id=echeance.id) }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette échéance ?');">
+								<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-action btn-icon-only" title="Supprimer cette échéance">
+                                        <svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-discret" style="padding: 20px;">Aucune échéance enregistrée.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale pour Ajouter/Modifier une échéance -->
+    <div id="echeance-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="echeance-modal-title" class="modal-title-with-icon">Ajouter une échéance</h3>
+                <button class="close-btn">×</button>
+            </div>
+            <form action="" method="post" class="modal-form">
+			<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label for="intitule">Intitulé</label>
+                    <input type="text" id="intitule" name="intitule" required>
+                </div>
+                <div class="form-group">
+                    <label for="date_echeance">Date d'échéance</label>
+                    <input type="date" id="date_echeance" name="date_echeance" required>
+                </div>
+                <div class="form-group">
+                    <label for="details">Détails (optionnel)</label>
+                    <textarea id="details" name="details" rows="4"></textarea>
+                </div>
+                <div class="form-group" id="traite-group" style="display: none; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="traite" name="traite" style="width: auto;">
+                    <label for="traite" style="margin-bottom: 0; font-weight: normal;">Marquer comme traité</label>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-action btn-secondary">Annuler</button>
+                    <button id="echeance-submit-btn" type="submit" class="btn-action">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% include 'footer.html' %}
+</body>
+</html>

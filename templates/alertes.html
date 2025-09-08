@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Centre d'Alertes</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="main-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="page-header">
+            <h2 class="page-title">
+                <svg class="page-title-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                    <path d="M80-560q0-100 44.5-183.5T244-882l47 64q-60 44-95.5 111T160-560H80Zm720 0q0-80-35.5-147T669-818l47-64q75 55 119.5 138.5T880-560h-80ZM160-200v-80h80v-280q0-83 50-147.5T420-792v-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v28q80 20 130 84.5T720-560v280h80v80H160Zm320-300Zm0 420q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-280h320v-280q0-66-47-113t-113-47q-66 0-113 47t-47 113v280Z"/>
+                </svg>
+                <span>Centre d'Alertes</span>
+            </h2>
+        </div>
+
+        <!-- SECTION 1 : Alertes de Stock Bas -->
+        <h3 class="management-header" style="margin-top: 30px;">
+            <svg class="management-header-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                <path d="M640-240v-80h104L536-526 376-366 80-664l56-56 240 240 160-160 264 264v-104h80v240H640Z"/>
+            </svg>
+            <span>Alertes de Stock Bas</span>
+        </h3>
+        {% if objets_stock %}
+            <table class="objet-table">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Quantité Disponible</th>
+                        <th>Seuil</th>
+                        <th>Catégorie</th>
+                        <th>Armoire</th>
+                        <th>Image</th>
+                        <th>Mis en commande</th>
+						<th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for objet in objets_stock %}
+                        <tr class="{{ 'acquitte' if objet.en_commande }}">
+                            <td><a href="{{ url_for('voir_objet', objet_id=objet.id) }}">{{ objet.nom }}</a></td>
+                            <td class="texte-alerte"><strong>{{ objet.quantite_disponible }}</strong></td>
+                            <td>{{ objet.seuil }}</td>
+                            <td>{{ objet.categorie }}</td>
+                            <td>{{ objet.armoire }}</td>
+                            <td class="image-cell">
+                                {% if objet.image %}
+                                <div class="image-preview-wrapper">
+                                    <img src="{{ url_for('serve_image', filename=objet.image) }}" class="image-objet-thumbnail" alt="Image de {{ objet.nom }}">
+                                    <img src="{{ url_for('serve_image', filename=objet.image) }}" class="image-objet-preview" alt="Aperçu de {{ objet.nom }}">
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <input type="checkbox" class="commande-checkbox" data-id="{{ objet.id }}" {% if objet.en_commande %}checked{% endif %} title="Marquer comme mis en commande">
+                            </td>
+							<td class="actions-cell">
+								<button class="btn-action btn-suggest" 
+										data-objet-id="{{ objet.id }}" 
+										data-objet-nom="{{ objet.nom }}"
+										title="Suggérer une quantité à commander">
+									Suggérer
+								</button>
+							</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Aucune alerte de stock bas pour le moment.</p>
+        {% endif %}
+
+        <!-- SECTION 2 : Alertes de péremption -->
+        <h3 class="management-header" style="margin-top: 50px;">
+            <svg class="management-header-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                <path d="M480-80q-75 0-140.5-28.5t-114-77q-48.5-48.5-77-114T120-440q0-75 28.5-140.5t77-114q48.5-48.5 114-77T480-800q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-440q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-80Zm0-360Zm112 168 56-56-128-128v-184h-80v216l152 152ZM224-866l56 56-170 170-56-56 170-170Zm512 0 170 170-56 56-170-170 56-56ZM480-160q117 0 198.5-81.5T760-440q0-117-81.5-198.5T480-720q-117 0-198.5 81.5T200-440q0 117 81.5 198.5T480-160Z"/>
+            </svg>
+            <span>Alertes de Péremption</span>
+        </h3>
+        <p style="margin-top:-15px; margin-bottom: 20px; color: var(--texte-discret);">Produits périmés ou expirant dans les 30 prochains jours.</p>
+        {% if objets_peremption %}
+        <table class="objet-table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Date de Péremption</th>
+                    <th>Statut</th>
+                    <th>Quantité Disponible</th>
+                    <th>Catégorie</th>
+                    <th>Armoire</th>
+                    <th>Image</th>
+                    <th>Traité</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for objet in objets_peremption %}
+                    {% set date_peremption_obj = date_actuelle.strptime(objet.date_peremption, '%Y-%m-%d') %}
+                    {% set jours_restants = (date_peremption_obj - date_actuelle).days %}
+                    {% set perime = jours_restants < 0 %}
+                    <tr class="{{ 'acquitte' if objet.traite }}">
+                        <td><a href="{{ url_for('voir_objet', objet_id=objet.id) }}">{{ objet.nom }}</a></td>
+                        <td class="{{ 'texte-perime' if perime else 'texte-perime-bientot' }}">
+                            <strong>{{ date_peremption_obj.strftime('%d/%m/%Y') }}</strong>
+                        </td>
+                        <td class="{{ 'texte-perime' if perime else 'texte-perime-bientot' }}">
+                            {% if perime %}
+                                Périmé depuis {{ jours_restants|abs }} jour{{ 's' if jours_restants|abs > 1 }}
+                            {% else %}
+                                Expire dans {{ jours_restants }} jour{{ 's' if jours_restants > 1 }}
+                            {% endif %}
+                        </td>
+                        {# === CORRECTION APPLIQUÉE ICI === #}
+                        <td>{{ objet.quantite_disponible }}</td>
+                        <td>{{ objet.categorie }}</td>
+                        <td>{{ objet.armoire }}</td>
+                        <td class="image-cell">
+                            {% if objet.image %}
+                            <div class="image-preview-wrapper">
+                                <img src="{{ url_for('serve_image', filename=objet.image) }}" class="image-objet-thumbnail" alt="Image de {{ objet.nom }}">
+                                <img src="{{ url_for('serve_image', filename=objet.image) }}" class="image-objet-preview" alt="Aperçu de {{ objet.nom }}">
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <input type="checkbox" class="traite-checkbox" data-id="{{ objet.id }}" {% if objet.traite %}checked{% endif %} title="Marquer comme traité">
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p>Aucune alerte de péremption dans les 30 prochains jours.</p>
+        {% endif %}
+    </div>
+    {% include 'footer.html' %}
+    {% include '_modale_suggestion.html' %}
+</body>
+</html>

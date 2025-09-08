@@ -1,0 +1,76 @@
+<div style="display: none;">
+    <svg id="modal-icon-template" class="modal-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"><path d="M167-120q-21 5-36.5-10.5T120-167l40-191 198 198-191 40Zm191-40L160-358l458-458q23-23 57-23t57 23l84 84q23 23 23 57t-23 57L358-160Zm317-600L261-346l85 85 414-414-85-85Z"/></svg>
+</div>
+<div id="add-object-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3 id="modal-objet-title" class="modal-title-with-icon"></h3>
+            <button class="close-btn">×</button>
+        </div>
+        <form id="modal-form-objet" action="" method="post" enctype="multipart/form-data" class="modal-form">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-grid">
+                <!-- COLONNE DE GAUCHE -->
+                <div class="form-column">
+                    <label for="nom">Nom de l'objet</label>
+                    <input type="text" id="nom" name="nom" required>
+                    
+                    <label for="quantite">Quantité</label>
+                    <input type="number" id="quantite" name="quantite" required>
+                    
+                    <label for="seuil">Seuil d'alerte</label>
+                    <input type="number" id="seuil" name="seuil" required>
+                    
+                    <label for="date_peremption">Date de péremption</label>
+                    <input type="date" id="date_peremption" name="date_peremption">
+
+                    <label for="armoire_id">Armoire</label>
+                    <select id="armoire_id" name="armoire_id" required>
+                        {% for a in armoires %}
+                            <option value="{{ a.id }}">{{ a.nom }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <label for="categorie_id">Catégorie</label>
+                    <select id="categorie_id" name="categorie_id" required>
+                        {% for c in categories %}
+                            <option value="{{ c.id }}">{{ c.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- COLONNE DE DROITE -->
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="image">Image (Optionnel)</label>
+                        <div class="file-drop-zone">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Z"/></svg>
+                            <span class="file-msg">Glissez-déposez ou cliquez pour choisir une image</span>
+                            <input type="file" id="image" name="image" class="file-input">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fds_file">Fiche de Sécurité (Optionnel)</label>
+                        <div class="file-drop-zone">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M280-280h400v-80H280v80Zm0-160h400v-80H280v80Zm0-160h400v-80H280v80ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Z"/></svg>
+                            <span class="file-msg">Glissez-déposez ou cliquez pour choisir un fichier</span>
+                            <input type="file" id="fds_file" name="fds_file" class="file-input">
+                        </div>
+                    </div>
+
+                    <div id="image-preview-container" style="display:none; text-align: center;">
+                        <img id="image-preview" src="" class="image-preview-modal" alt="Aperçu">
+                        <div>
+                            <input type="checkbox" id="supprimer_image" name="supprimer_image">
+                            <label for="supprimer_image">Supprimer l'image actuelle</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel close-btn">Annuler</button>
+                <button type="submit" id="modal-submit-btn" class="btn-action">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>

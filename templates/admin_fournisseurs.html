@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion des Fournisseurs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="main-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="management-header">
+            <h2 class="page-title">
+                <svg class="page-title-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M240-160q-50 0-85-35t-35-85H40v-440q0-33 23.5-56.5T120-800h560v160h120l120 160v200h-80q0 50-35 85t-85 35q-50 0-85-35t-35-85H360q0 50-35 85t-85 35Zm0-80q17 0 28.5-11.5T280-280q0-17-11.5-28.5T240-320q-17 0-28.5 11.5T200-280q0 17 11.5 28.5T240-240ZM120-360h32q17-18 39-29t49-11q27 0 49 11t39 29h272v-360H120v360Zm600 120q17 0 28.5-11.5T760-280q0-17-11.5-28.5T720-320q-17 0-28.5 11.5T680-280q0 17 11.5 28.5T720-240Zm-40-200h170l-90-120h-80v120ZM360-540Z"/></svg>
+                <span>Gestion des Fournisseurs</span>
+            </h2>
+        </div>
+
+        <div class="page-actions-container">
+            <button class="btn-action" data-modal-trigger="add-fournisseur-modal">Ajouter un fournisseur</button>
+        </div>
+
+        <table class="objet-table">
+            <thead>
+                <tr>
+                    <th>Logo</th>
+                    <th>Nom</th>
+                    <th>Site Web</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in fournisseurs %}
+                <tr>
+                    <td class="image-cell">
+                        {% if f.logo %}
+                        <div class="image-preview-wrapper">
+                            <img src="{{ url_for('static', filename='images/fournisseurs/' + f.logo) }}" class="image-objet-thumbnail" alt="Logo de {{ f.nom }}">
+                            <img src="{{ url_for('static', filename='images/fournisseurs/' + f.logo) }}" class="image-objet-preview" alt="Aperçu du logo de {{ f.nom }}">
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>{{ f.nom }}</td>
+                    <td class="url-cell"><a href="{{ f.site_web }}" target="_blank">{{ f.site_web }}</a></td>
+                    <td class="actions-cell">
+						<button type="button" class="btn-action btn-icon-only" title="Modifier"
+								data-modal-trigger="edit-fournisseur-modal"
+								data-action-url="{{ url_for('modifier_fournisseur', id=f.id) }}"
+								data-form-nom="{{ f.nom }}"
+								data-form-site_web="{{ f.site_web or '' }}">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
+						</button>
+						<form class="form-in-cell" action="{{ url_for('supprimer_fournisseur', id=f.id) }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer le fournisseur \'{{ f.nom }}\' ?');">
+						<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+							<button type="submit" class="btn-action btn-icon-only" title="Supprimer">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+							</button>
+						</form>
+					</td>
+									</tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-discret" style="text-align: center; padding: 20px;">Aucun fournisseur ajouté.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modale pour ajouter un nouveau fournisseur -->
+    <div id="add-fournisseur-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title-with-icon">Ajouter un fournisseur</h3>
+                <button class="close-btn">×</button>
+            </div>
+            <form action="{{ url_for('gestion_fournisseurs') }}" method="post" enctype="multipart/form-data" class="modal-form">
+			<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label for="nom">Nom du fournisseur</label>
+                    <input type="text" id="nom" name="nom" required>
+                </div>
+                <div class="form-group">
+                    <label for="site_web">Site Web</label>
+                    <input type="url" id="site_web" name="site_web" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label for="logo">Logo (Optionnel)</label>
+                    <input type="file" id="logo" name="logo" class="custom-file-input">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-action btn-secondary">Annuler</button>
+                    <button type="submit" class="btn-action">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale pour modifier un fournisseur -->
+    <div id="edit-fournisseur-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title-with-icon">Modifier le fournisseur</h3>
+                <button class="close-btn">×</button>
+            </div>
+            <form action="" method="post" class="modal-form" enctype="multipart/form-data">
+				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+				<div class="form-group">
+					<label for="edit_nom">Nom du fournisseur</label>
+					<input type="text" id="edit_nom" name="nom" required>
+				</div>
+
+				<div class="form-group">
+					<label for="edit_site_web">Site Web</label>
+					<input type="text" id="edit_site_web" name="site_web">
+				</div>
+
+				<!-- NOUVEAU BLOC AMÉLIORÉ POUR LE LOGO -->
+				<div class="form-group">
+					<label for="edit_logo">Nouveau Logo (Optionnel)</label>
+					<div class="file-input-wrapper">
+						<!-- Le vrai input est caché, mais fonctionnel -->
+						<input type="file" id="edit_logo" name="logo" class="file-input-hidden">
+						<!-- Le label est stylé comme un bouton -->
+						<label for="edit_logo" class="btn-action btn-secondary">Choisir un fichier</label>
+						<!-- Le span affichera le nom du fichier choisi -->
+						<span id="edit-logo-filename" class="file-input-filename">Aucun fichier choisi</span>
+					</div>
+				</div>
+
+				<!-- NOUVEAU BLOC AMÉLIORÉ POUR LA SUPPRESSION -->
+				<div class="checkbox-group">
+					<input type="checkbox" id="edit_supprimer_logo" name="supprimer_logo">
+					<label for="edit_supprimer_logo">Supprimer le logo actuel</label>
+				</div>
+				<!-- FIN DES NOUVEAUX BLOCS -->
+
+				<div class="modal-actions">
+					<button type="button" class="btn-action btn-cancel close-btn">Annuler</button>
+					<button type="submit" class="btn-action">Enregistrer</button>
+				</div>
+			</form>
+        </div>
+    </div>
+
+    {% include 'footer.html' %}
+</body>
+</html>

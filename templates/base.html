@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GMLCL{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    {% block head_styles %}{% endblock %}
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h3>GMLCL</h3>
+        </div>
+        <ul class="nav-links">
+            <!-- Ces url_for() correspondent maintenant à tes fonctions dans app.py -->
+            <li><a href="{{ url_for('index') }}">Tableau de Bord</a></li>
+            <li><a href="{{ url_for('materiels') }}">Matériel</a></li>
+            <li><a href="{{ url_for('reactifs') }}">Réactifs</a></li>
+            <li><a href="{{ url_for('fournisseurs') }}">Fournisseurs</a></li>
+            <li><a href="{{ url_for('logout') }}">Déconnexion</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}" type="module"></script>
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

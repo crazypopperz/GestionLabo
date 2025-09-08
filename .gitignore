@@ -1,0 +1,33 @@
+# Fichiers de base de données
+# Ils contiennent des données, pas du code. Ils ne doivent pas être versionnés.
+*.db
+*.sqlite
+*.sqlite3
+*.sqbpro
+
+# Fichiers compilés et exécutables
+# Ils sont générés à partir du code, on ne stocke jamais le résultat.
+*.exe
+*.spec
+
+# Fichiers de bureautique et temporaires
+# Documentation finale oui, mais pas les brouillons ou les formats non-standards.
+*.docx
+~$*.docx
+# Le PDF du manuel utilisateur peut être une exception, mais pour l'instant on l'ignore.
+
+# Fichiers de configuration de l'IDE (ex: VSCode)
+# Ces réglages sont personnels à ton ordinateur.
+.vscode/
+
+# Environnements virtuels Python
+# Contient des centaines de fichiers qui ne sont pas ton code.
+venv/
+.venv/
+env/
+.env
+
+# Dossiers de cache Python
+# Fichiers temporaires générés par Python.
+__pycache__/
+*.pyc
