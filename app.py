@@ -32,7 +32,7 @@ class PDFWithFooter(FPDF):
 
 # --- CONFIGURATION DE L'APPLICATION ---
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'une-cle-secrete-tres-difficile-a-deviner'
+app.config['SECRET_KEY'] = os.environ.get('GMLCL_SECRET_KEY', 'une-cle-temporaire-pour-le-developpement-a-changer')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 csrf = CSRFProtect(app)
 USER_DATA_PATH = os.path.join(os.environ.get('APPDATA'), 'GMLCL')
@@ -57,7 +57,7 @@ if not app.debug:
     app.logger.info('Logging configuré pour écrire dans %s', log_file_path)
 
 ITEMS_PER_PAGE = 10
-CLE_PRO_SECRETE = "LABO-PRO-2025-X@v14211825!S@cha14211825!Quentin14211825!"
+CLE_PRO_SECRETE = os.environ.get('GMLCL_PRO_KEY', 'valeur-par-defaut-si-non-definie')
 
 # --- GESTION CENTRALE DE LA BASE DE DONNÉES ---
 def strip_accents(text):
