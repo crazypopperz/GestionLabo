@@ -344,19 +344,19 @@ def get_alerte_info(db):
     date_limite = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
 
     # CORRECTION: Calcul du stock disponible pour le comptage des alertes
-    query_stock = f"""
-        SELECT COUNT(*) FROM (
+    query_stock = """
+            SELECT COUNT(*) FROM (
             SELECT 
                 o.seuil,
                 (o.quantite_physique - COALESCE(SUM(r.quantite_reservee), 0)) as quantite_disponible
             FROM objets o
-            LEFT JOIN reservations r ON o.id = r.objet_id AND r.fin_reservation > '{now_str}'
+            LEFT JOIN reservations r ON o.id = r.objet_id AND r.fin_reservation > ?
             WHERE o.en_commande = 0
             GROUP BY o.id
             HAVING quantite_disponible <= o.seuil
         )
     """
-    count_stock = db.execute(query_stock).fetchone()[0]
+    count_stock = db.execute(query_stock, (now_str,)).fetchone()[0]
 
     count_peremption = db.execute(
         "SELECT COUNT(*) FROM objets WHERE date_peremption IS NOT NULL AND "
@@ -436,21 +436,21 @@ def get_paginated_objets(db,
 
     # --- NOUVELLE LOGIQUE DE CALCUL DE STOCK ---
     # La requête de base calcule maintenant la quantité disponible pour chaque objet
-    base_query = f"""
+    base_query = """
     SELECT 
-        o.id, o.nom, o.quantite_physique, o.seuil, o.armoire_id, o.categorie_id,
-        o.fds_nom_original, o.fds_nom_securise,
-        a.nom AS armoire, c.nom AS categorie, o.image, o.en_commande,
-        o.date_peremption,
-        (o.quantite_physique - COALESCE(SUM(r.quantite_reservee), 0)) as quantite_disponible
+    o.id, o.nom, o.quantite_physique, o.seuil, o.armoire_id, o.categorie_id,
+    o.fds_nom_original, o.fds_nom_securise,
+    a.nom AS armoire, c.nom AS categorie, o.image, o.en_commande,
+    o.date_peremption,
+    (o.quantite_physique - COALESCE(SUM(r.quantite_reservee), 0)) as quantite_disponible
     FROM objets o
     JOIN armoires a ON o.armoire_id = a.id
     JOIN categories c ON o.categorie_id = c.id
-    LEFT JOIN reservations r ON o.id = r.objet_id AND r.fin_reservation > '{now_str}'
+    LEFT JOIN reservations r ON o.id = r.objet_id AND r.fin_reservation > ?
     """
     
     conditions = []
-    params = []
+    params = [now_str]
     
     if filter_field and filter_id:
         conditions.append(f"o.{filter_field} = ?")
@@ -476,15 +476,21 @@ def get_paginated_objets(db,
     # La logique de filtre par état doit utiliser une clause HAVING sur le stock calculé
     if etat:
         date_limite_peremption = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
+        current_date = now_str.split(' ')[0]
         having_conditions = []
+
         if etat == 'perime':
-            having_conditions.append(f"o.date_peremption < '{now_str.split(' ')[0]}'")
+            having_conditions.append("o.date_peremption < ?")
+            params.append(current_date)
         elif etat == 'bientot':
-            having_conditions.append(f"o.date_peremption >= '{now_str.split(' ')[0]}' AND o.date_peremption < '{date_limite_peremption}'")
+            having_conditions.append("o.date_peremption >= ? AND o.date_peremption < ?")
+            params.extend([current_date, date_limite_peremption])
         elif etat == 'stock':
+            # Cette condition ne dépend pas de variables externes, elle est sûre.
             having_conditions.append("quantite_disponible <= o.seuil")
         elif etat == 'ok':
-            having_conditions.append(f"quantite_disponible > o.seuil AND (o.date_peremption IS NULL OR o.date_peremption >= '{date_limite_peremption}')")
+            having_conditions.append("quantite_disponible > o.seuil AND (o.date_peremption IS NULL OR o.date_peremption >= ?)")
+            params.append(date_limite_peremption)
         
         if having_conditions:
             base_query += " HAVING " + " AND ".join(having_conditions)
@@ -820,15 +826,15 @@ def voir_objet(objet_id):
     
     # CORRECTION : La requête calcule maintenant la quantité disponible
     objet = db.execute(
-        f"""SELECT 
-                o.*, a.nom as armoire_nom, c.nom as categorie_nom,
-                (o.quantite_physique - COALESCE((SELECT SUM(r.quantite_reservee) 
-                                                 FROM reservations r 
-                                                 WHERE r.objet_id = o.id AND r.fin_reservation > '{now_str}'), 0)) as quantite_disponible
+        """SELECT
+            o.*, a.nom as armoire_nom, c.nom as categorie_nom,
+            (o.quantite_physique - COALESCE((SELECT SUM(r.quantite_reservee) 
+                                             FROM reservations r 
+                                             WHERE r.objet_id = o.id AND r.fin_reservation > ?), 0)) as quantite_disponible
            FROM objets o
            JOIN armoires a ON o.armoire_id = a.id
            JOIN categories c ON o.categorie_id = c.id
-           WHERE o.id = ?""", (objet_id, )).fetchone()
+           WHERE o.id = ?""", (now_str, objet_id, )).fetchone()
     
     if not objet:
         flash("Objet non trouvé.", "error")
@@ -978,7 +984,7 @@ def alertes():
     now_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     # CORRECTION: Calcul du stock disponible pour la liste des alertes de stock
-    objets_stock_query = f"""
+    objets_stock_query = """
         SELECT o.id, o.nom, o.quantite_physique, o.seuil, a.nom AS armoire,
             c.nom AS categorie, o.image, o.en_commande,
             o.date_peremption, o.traite,
@@ -986,17 +992,17 @@ def alertes():
         FROM objets o 
         JOIN armoires a ON o.armoire_id = a.id
         JOIN categories c ON o.categorie_id = c.id
-        LEFT JOIN reservations r ON o.id = r.objet_id AND r.fin_reservation > '{now_str}'
+        LEFT JOIN reservations r ON o.id = r.objet_id AND r.fin_reservation > ?
         GROUP BY o.id
         HAVING quantite_disponible <= o.seuil 
         ORDER BY o.nom
     """
-    objets_stock = db.execute(objets_stock_query).fetchall()
+    objets_stock = db.execute(objets_stock_query, (now_str,)).fetchall()
 
     date_limite = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
     
     # CORRECTION: Calcul du stock disponible pour la liste des péremptions
-    objets_peremption_query = f"""
+    objets_peremption_query = """
         SELECT o.id, o.nom, o.quantite_physique, o.seuil, a.nom AS armoire,
                c.nom AS categorie, o.image, o.en_commande, o.date_peremption,
                o.traite,
@@ -1004,12 +1010,12 @@ def alertes():
         FROM objets o 
         JOIN armoires a ON o.armoire_id = a.id
         JOIN categories c ON o.categorie_id = c.id
-        LEFT JOIN reservations r ON o.id = r.objet_id AND r.fin_reservation > '{now_str}'
+        LEFT JOIN reservations r ON o.id = r.objet_id AND r.fin_reservation > ?
         WHERE o.date_peremption IS NOT NULL AND o.date_peremption < ?
         GROUP BY o.id
         ORDER BY o.date_peremption ASC
     """
-    objets_peremption = db.execute(objets_peremption_query, (date_limite, )).fetchall()
+    objets_peremption = db.execute(objets_peremption_query, (now_str, date_limite, )).fetchall()
     
     armoires = db.execute("SELECT * FROM armoires ORDER BY nom").fetchall()
     categories = db.execute("SELECT * FROM categories ORDER BY nom").fetchall()
@@ -3035,7 +3041,8 @@ def api_valider_panier_interne(cart_data, groupe_id_existant=None):
 
         for obj_id, quantite_demandee in objets_requis.items():
             if quantite_demandee <= 0: continue
-            stock_info = db.execute(f"SELECT o.nom, (o.quantite_physique - COALESCE((SELECT SUM(r.quantite_reservee) FROM reservations r WHERE r.objet_id = o.id AND r.fin_reservation > '{now_str}'), 0)) as quantite_disponible FROM objets o WHERE o.id = ?", (obj_id,)).fetchone()
+            stock_info = db.execute("""SELECT o.nom, (o.quantite_physique - COALESCE((SELECT SUM(r.quantite_reservee) FROM reservations r WHERE r.objet_id = o.id AND r.fin_reservation > ?), 0)) as quantite_disponible
+                                        FROM objets o WHERE o.id = ?""", (now_str, objet_id,)).fetchone()
             if not stock_info or stock_info['quantite_disponible'] < quantite_demandee:
                 return {'success': False, 'error': f"Stock insuffisant pour '{stock_info['nom']}'"}
 
@@ -3441,7 +3448,7 @@ def exporter_inventaire():
     db = get_db()
     now_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
-    inventaire_data = db.execute(f"""
+    inventaire_data = db.execute("""
         SELECT 
             o.nom, 
             c.nom AS categorie,
@@ -3452,10 +3459,10 @@ def exporter_inventaire():
         FROM objets o 
         JOIN armoires a ON o.armoire_id = a.id
         JOIN categories c ON o.categorie_id = c.id
-        LEFT JOIN reservations r ON o.id = r.objet_id AND r.fin_reservation > '{now_str}'
+        LEFT JOIN reservations r ON o.id = r.objet_id AND r.fin_reservation > ?
         GROUP BY o.id, o.nom, c.nom, a.nom, o.seuil, o.date_peremption
         ORDER BY c.nom, o.nom
-    """).fetchall()
+    """, (now_str,)).fetchall()
         
     format_type = request.args.get('format')
     if format_type == 'pdf':
