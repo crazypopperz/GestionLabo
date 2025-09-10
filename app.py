@@ -43,10 +43,12 @@ class PDFWithFooter(FPDF):
 
 # --- CONFIGURATION DE L'APPLICATION ---
 app = Flask(__name__)
+app.config.from_object('config')
 init_db_app(app)
 app.config['SECRET_KEY'] = os.environ.get('GMLCL_SECRET_KEY', 'une-cle-temporaire-pour-le-developpement-a-changer')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 csrf = CSRFProtect(app)
+
 # ENREGISTREMENT DES BLUEPRINTS
 app.register_blueprint(auth_bp)
 app.register_blueprint(inventaire_bp)
