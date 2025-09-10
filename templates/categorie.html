@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 </head>
-<body data-add-url="{{ url_for('ajouter_objet') }}">
+<body data-add-url="{{ url_for('inventaire.ajouter_objet') }}">
     {% include 'header.html' %}
     <div class="main-container">
 		{% with messages = get_flashed_messages(with_categories=true) %}
@@ -83,7 +83,7 @@
 
                     <tr class="{{ 'row-perime' if perime else 'row-perime-bientot' if perime_bientot }}" data-objet-id="{{ objet.id }}">
                         {% if session.user_role == 'admin' %}<td class="checkbox-column"><input type="checkbox" class="objet-checkbox" data-id="{{ objet.id }}"></td>{% endif %}
-                        <td data-field="nom"><a href="{{ url_for('voir_objet', objet_id=objet.id) }}">{{ objet.nom }}</a></td>
+                        <td data-field="nom"><a href="{{ url_for('inventaire.voir_objet', objet_id=objet.id) }}">{{ objet.nom }}</a></td>
                         {# === CORRECTION 2 === #}
                         <td data-field="quantite">{{ objet.quantite_disponible }}</td>
                         <td data-field="seuil">{{ objet.seuil }}</td>

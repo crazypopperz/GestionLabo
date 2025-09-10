@@ -13,7 +13,7 @@ auth_bp = Blueprint(
 @auth_bp.route("/login", methods=['GET', 'POST'])
 def login():
     if 'user_id' in session:
-        return redirect(url_for('index'))
+        return redirect(url_for('inventaire.index'))
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -27,7 +27,7 @@ def login():
             session['username'] = user['nom_utilisateur']
             session['user_role'] = user['role']
             flash(f"Bienvenue, {user['nom_utilisateur']} !", "success")
-            return redirect(url_for('index'))
+            return redirect(url_for('inventaire.index'))
         else:
             flash("Nom d'utilisateur ou mot de passe invalide.", "error")
     return render_template('login.html')
@@ -102,7 +102,7 @@ def profil():
             db.commit()
             flash("Votre mot de passe a été mis à jour avec succès.",
                   "success")
-            return redirect(url_for('index'))
+            return redirect(url_for('inventaire.index'))
         except sqlite3.Error as e:
             db.rollback()
             flash(f"Erreur de base de données : {e}", "error")

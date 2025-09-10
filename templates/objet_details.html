@@ -20,7 +20,7 @@
         {% endwith %}
 
         <div class="breadcrumb-nav">
-            <a href="{{ url_for('inventaire') }}" class="breadcrumb-link">
+            <a href="{{ url_for('inventaire.inventaire') }}" class="breadcrumb-link">
                 <span class="breadcrumb-text">Inventaire</span>
             </a>
             <span class="breadcrumb-separator">/</span>
@@ -48,8 +48,8 @@
                     <li><strong>Quantité Disponible :</strong> <span class="stock-disponible">{{ objet.quantite_disponible }}</span></li>
                     <li><strong>Quantité Physique Totale :</strong> {{ objet.quantite_physique }}</li>
                     <li><strong>Seuil d'alerte :</strong> {{ objet.seuil }}</li>
-                    <li><strong>Armoire :</strong> <a href="{{ url_for('voir_armoire', id=objet.armoire_id) }}">{{ objet.armoire_nom }}</a></li>
-                    <li><strong>Catégorie :</strong> <a href="{{ url_for('voir_categorie', id=objet.categorie_id) }}">{{ objet.categorie_nom }}</a></li>
+                    <li><strong>Armoire :</strong> <a href="{{ url_for('inventaire.voir_armoire', id=objet.armoire_id) }}">{{ objet.armoire_nom }}</a></li>
+                    <li><strong>Catégorie :</strong> <a href="{{ url_for('inventaire.voir_categorie', id=objet.categorie_id) }}">{{ objet.categorie_nom }}</a></li>
                     <li>
                         <strong>Date de péremption :</strong>
                         {% if objet.date_peremption %}

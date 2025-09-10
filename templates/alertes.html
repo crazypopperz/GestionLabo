@@ -53,7 +53,7 @@
                 <tbody>
                     {% for objet in objets_stock %}
                         <tr class="{{ 'acquitte' if objet.en_commande }}">
-                            <td><a href="{{ url_for('voir_objet', objet_id=objet.id) }}">{{ objet.nom }}</a></td>
+                            <td><a href="{{ url_for('inventaire.voir_objet', objet_id=objet.id) }}">{{ objet.nom }}</a></td>
                             <td class="texte-alerte"><strong>{{ objet.quantite_disponible }}</strong></td>
                             <td>{{ objet.seuil }}</td>
                             <td>{{ objet.categorie }}</td>
@@ -113,7 +113,7 @@
                     {% set jours_restants = (date_peremption_obj - date_actuelle).days %}
                     {% set perime = jours_restants < 0 %}
                     <tr class="{{ 'acquitte' if objet.traite }}">
-                        <td><a href="{{ url_for('voir_objet', objet_id=objet.id) }}">{{ objet.nom }}</a></td>
+                        <td><a href="{{ url_for('inventaire.voir_objet', objet_id=objet.id) }}">{{ objet.nom }}</a></td>
                         <td class="{{ 'texte-perime' if perime else 'texte-perime-bientot' }}">
                             <strong>{{ date_peremption_obj.strftime('%d/%m/%Y') }}</strong>
                         </td>

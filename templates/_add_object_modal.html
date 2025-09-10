@@ -7,7 +7,7 @@
             </h3>
             <button class="close-btn">×</button>
         </div>
-        <form action="{{ url_for('ajouter_objet') }}" method="post" enctype="multipart/form-data" class="modal-form">
+        <form action="{{ url_for('inventaire.ajouter_objet') }}" method="post" enctype="multipart/form-data" class="modal-form">
 		<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-grid">
                 <div class="form-column">

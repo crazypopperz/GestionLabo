@@ -51,7 +51,7 @@
 
         <tr class="{{ 'row-perime' if perime else 'row-perime-bientot' if perime_bientot }}" data-objet-id="{{ objet.id }}">
             {% if session.user_role == 'admin' and pagination.endpoint != 'inventaire' %}<td class="checkbox-column"><input type="checkbox" class="objet-checkbox" data-id="{{ objet.id }}"></td>{% endif %}
-            <td data-field="nom"><a href="{{ url_for('voir_objet', objet_id=objet.id) }}">{{ objet.nom }}</a></td>
+            <td data-field="nom"><a href="{{ url_for('inventaire.voir_objet', objet_id=objet.id) }}">{{ objet.nom }}</a></td>
             <td data-field="quantite">{{ objet.quantite_disponible }}</td>
             <td data-field="seuil">{{ objet.seuil }}</td>
             <td data-field="date_peremption" class="{{ 'texte-perime' if perime else 'texte-perime-bientot' if perime_bientot }}">{{ date_peremption_obj.strftime('%d/%m/%Y') if objet.date_peremption }}</td>
@@ -86,7 +86,7 @@
                     Modifier
                 </button>
 				{% if session.user_role == 'admin' %}
-				<form class="form-in-cell" action="{{ url_for('supprimer_objet', id_objet=objet.id) }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement l\'objet \'{{ objet.nom }}\' ? Cette action est irréversible.');">
+				<form class="form-in-cell" action="{{ url_for('inventaire.supprimer_objet', id_objet=objet.id) }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement l\'objet \'{{ objet.nom }}\' ? Cette action est irréversible.');">
 					<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 					<button type="submit" class="btn-action btn-danger">Supprimer</button>
 				</form>

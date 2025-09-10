@@ -87,7 +87,9 @@ def init_db():
                 INSERT INTO "parametres" ("cle", "valeur") VALUES ('licence_statut', 'FREE');
                 INSERT INTO "parametres" ("cle", "valeur") VALUES ('licence_cle', '');
                 COMMIT;
-            """
+                INSERT INTO "parametres" ("cle", "valeur") VALUES ('items_per_page', '10');
+                COMMIT;
+                """
             
             db.executescript(schema_script)
             db.close()

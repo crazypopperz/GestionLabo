@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 </head>
-<body data-add-url="{{ url_for('ajouter_objet') }}" data-icon-url="{{ url_for('static', filename='icons/ajout.png') }}">
+<body data-add-url="{{ url_for('inventaire.ajouter_objet') }}" data-icon-url="{{ url_for('static', filename='icons/ajout.png') }}">
     {% include 'header.html' %}
     <div class="main-container">
 
@@ -183,7 +183,7 @@
                         {% for objet in data.objets_recents %}
                             <li class="dashboard-list-item">
                                 <span class="item-title">{{ objet.nom }}</span>
-                                <a href="{{ url_for('voir_objet', objet_id=objet.id) }}" class="btn btn-light btn-compact">Détails</a>
+                                <a href="{{ url_for('inventaire.voir_objet', objet_id=objet.id) }}" class="btn btn-light btn-compact">Détails</a>
                             </li>
                         {% endfor %}
                         </ul>
