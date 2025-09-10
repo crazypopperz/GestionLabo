@@ -33,6 +33,7 @@ from utils import (admin_required, get_alerte_info, is_setup_needed,
                    limit_objets_required, login_required)
 from views.auth import auth_bp
 from views.inventaire import inventaire_bp
+from views.admin import admin_bp
 
 class PDFWithFooter(FPDF):
     def footer(self):
@@ -60,6 +61,7 @@ DATABASE = os.path.join(USER_DATA_PATH, 'base.db')
 app.config['DATABASE'] = DATABASE
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['FDS_UPLOAD_FOLDER'], exist_ok=True)
+app.register_blueprint(admin_bp)
 
 if not app.debug:
     log_file_path = os.path.join(USER_DATA_PATH, 'app.log')
@@ -183,15 +185,7 @@ def inject_licence_info():
     
     return {'licence': licence_info}
 
-
-# --- REMPLACER CETTE FONCTION ---
-
-
 # --- ROUTES PRINCIPALES ---
-
-
-
-
 
 @app.route("/jour/<string:date_str>")
 @login_required
@@ -345,18 +339,6 @@ def gestion_categories():
                            armoires=armoires,
                            now=datetime.now)
 
-
-@app.route("/admin")
-@admin_required
-def admin():
-    db = get_db()
-    armoires = db.execute("SELECT * FROM armoires ORDER BY nom").fetchall()
-    categories = db.execute("SELECT * FROM categories ORDER BY nom").fetchall()
-    return render_template("admin.html",
-                           armoires=armoires,
-                           categories=categories,
-                           now=datetime.now)
-
 @app.route("/a-propos")
 @login_required
 def a_propos():
@@ -374,7 +356,7 @@ def activer_licence():
         flash(
             "Erreur critique : Identifiant d'instance manquant. "
             "Impossible de vérifier la licence.", "error")
-        return redirect(url_for('admin'))
+        return redirect(url_for('admin.admin'))
 
     instance_id = instance_id_row['valeur']
 
@@ -402,7 +384,7 @@ def activer_licence():
             "La clé de licence fournie est invalide ou ne correspond pas à "
             "cette installation.", "error")
 
-    return redirect(url_for('admin'))
+    return redirect(url_for('admin.admin'))
 
 
 @app.route("/admin/reset_licence", methods=["POST"])
@@ -420,7 +402,7 @@ def reset_licence():
         flash(
             "Mot de passe administrateur incorrect. "
             "La réinitialisation a été annulée.", "error")
-        return redirect(url_for('admin'))
+        return redirect(url_for('admin.admin'))
 
     try:
         db.execute(
@@ -435,142 +417,7 @@ def reset_licence():
         flash(f"Erreur de base de données lors de la réinitialisation : {e}",
               "error")
 
-    return redirect(url_for('admin'))
-
-
-@app.route("/admin/utilisateurs")
-@admin_required
-def gestion_utilisateurs():
-    db = get_db()
-    utilisateurs = db.execute(
-        "SELECT id, nom_utilisateur, role, email FROM utilisateurs "
-        "ORDER BY nom_utilisateur").fetchall()
-    armoires = db.execute("SELECT * FROM armoires ORDER BY nom").fetchall()
-    categories = db.execute("SELECT * FROM categories ORDER BY nom").fetchall()
-    return render_template("admin_utilisateurs.html",
-                           utilisateurs=utilisateurs,
-                           armoires=armoires,
-                           categories=categories,
-                           now=datetime.now)
-
-
-@app.route("/admin/utilisateurs/modifier_email/<int:id_user>",
-           methods=["POST"])
-@admin_required
-def modifier_email_utilisateur(id_user):
-    email = request.form.get('email', '').strip()
-    if not email or '@' not in email:
-        flash("Veuillez fournir une adresse e-mail valide.", "error")
-        return redirect(url_for('gestion_utilisateurs'))
-
-    db = get_db()
-    user = db.execute("SELECT nom_utilisateur FROM utilisateurs WHERE id = ?",
-                      (id_user, )).fetchone()
-    if not user:
-        flash("Utilisateur non trouvé.", "error")
-        return redirect(url_for('gestion_utilisateurs'))
-
-    try:
-        db.execute("UPDATE utilisateurs SET email = ? WHERE id = ?",
-                   (email, id_user))
-        db.commit()
-        flash(
-            f"L'adresse e-mail pour '{user['nom_utilisateur']}' a été "
-            "mise à jour.", "success")
-    except sqlite3.Error as e:
-        db.rollback()
-        flash(f"Erreur de base de données : {e}", "error")
-
-    return redirect(url_for('gestion_utilisateurs'))
-
-
-@app.route("/admin/utilisateurs/supprimer/<int:id_user>", methods=["POST"])
-@admin_required
-def supprimer_utilisateur(id_user):
-    if id_user == session['user_id']:
-        flash("Vous ne pouvez pas supprimer votre propre compte.", "error")
-        return redirect(url_for('gestion_utilisateurs'))
-    db = get_db()
-    user = db.execute("SELECT nom_utilisateur FROM utilisateurs WHERE id = ?",
-                      (id_user, )).fetchone()
-    if user:
-        db.execute("DELETE FROM utilisateurs WHERE id = ?", (id_user, ))
-        db.commit()
-        flash(f"L'utilisateur '{user['nom_utilisateur']}' a été supprimé.",
-              "success")
-    else:
-        flash("Utilisateur non trouvé.", "error")
-    return redirect(url_for('gestion_utilisateurs'))
-
-
-@app.route("/admin/utilisateurs/promouvoir/<int:id_user>", methods=["POST"])
-@admin_required
-def promouvoir_utilisateur(id_user):
-    if id_user == session['user_id']:
-        flash("Action non autorisée sur votre propre compte.", "error")
-        return redirect(url_for('gestion_utilisateurs'))
-    password = request.form.get('password')
-    db = get_db()
-    admin_actuel = db.execute(
-        "SELECT mot_de_passe FROM utilisateurs WHERE id = ?",
-        (session['user_id'], )).fetchone()
-    if not admin_actuel or not check_password_hash(
-            admin_actuel['mot_de_passe'], password):
-        flash(
-            "Mot de passe administrateur incorrect. "
-            "La passation de pouvoir a échoué.", "error")
-        return redirect(url_for('gestion_utilisateurs'))
-    try:
-        db.execute("UPDATE utilisateurs SET role = 'admin' WHERE id = ?",
-                   (id_user, ))
-        db.execute("UPDATE utilisateurs SET role = 'utilisateur' WHERE id = ?",
-                   (session['user_id'], ))
-        db.commit()
-        flash(
-            "Passation de pouvoir réussie ! "
-            "Vous êtes maintenant un utilisateur standard.", "success")
-        return redirect(url_for('auth.logout'))
-    except sqlite3.Error as e:
-        db.rollback()
-        flash(f"Une erreur est survenue lors de la passation de pouvoir : {e}",
-              "error")
-        return redirect(url_for('gestion_utilisateurs'))
-
-
-@app.route("/admin/utilisateurs/reinitialiser_mdp/<int:id_user>",
-           methods=["POST"])
-@admin_required
-def reinitialiser_mdp(id_user):
-    if id_user == session['user_id']:
-        flash(
-            "Vous ne pouvez pas réinitialiser votre propre mot de passe ici.",
-            "error")
-        return redirect(url_for('gestion_utilisateurs'))
-    nouveau_mdp = request.form.get('nouveau_mot_de_passe')
-    if not nouveau_mdp or len(nouveau_mdp) < 4:
-        flash(
-            "Le nouveau mot de passe est requis et doit contenir "
-            "au moins 4 caractères.", "error")
-        return redirect(url_for('gestion_utilisateurs'))
-    db = get_db()
-    user = db.execute("SELECT nom_utilisateur FROM utilisateurs WHERE id = ?",
-                      (id_user, )).fetchone()
-    if user:
-        try:
-            db.execute("UPDATE utilisateurs SET mot_de_passe = ? WHERE id = ?",
-                       (generate_password_hash(nouveau_mdp,
-                                               method='scrypt'), id_user))
-            db.commit()
-            flash(
-                f"Le mot de passe pour l'utilisateur "
-                f"'{user['nom_utilisateur']}' a été réinitialisé avec succès.",
-                "success")
-        except sqlite3.Error as e:
-            db.rollback()
-            flash(f"Erreur de base de données : {e}", "error")
-    else:
-        flash("Utilisateur non trouvé.", "error")
-    return redirect(url_for('gestion_utilisateurs'))
+    return redirect(url_for('admin.admin'))
 
 
 # --- ROUTES POUR LA GESTION DES KITS ---
@@ -2146,7 +1993,7 @@ def telecharger_db():
         flash(
             "Le téléchargement de la base de données est une fonctionnalité "
             "de la version Pro.", "warning")
-        return redirect(url_for('admin'))
+        return redirect(url_for('admin.admin'))
 
     return send_file(DATABASE, as_attachment=True)
 
@@ -2156,11 +2003,11 @@ def telecharger_db():
 def importer_db():
     if 'fichier' not in request.files:
         flash("Aucun fichier sélectionné.", "error")
-        return redirect(url_for('admin'))
+        return redirect(url_for('admin.admin'))
     fichier = request.files.get("fichier")
     if not fichier or fichier.filename == '':
         flash("Aucun fichier selecté.", "error")
-        return redirect(url_for('admin'))
+        return redirect(url_for('admin.admin'))
     if fichier and fichier.filename.endswith(".db"):
         temp_db_path = DATABASE + ".tmp"
         fichier.save(temp_db_path)
@@ -2169,7 +2016,7 @@ def importer_db():
     else:
         flash("Le fichier fourni n'est pas une base de données valide (.db).",
               "error")
-    return redirect(url_for('admin'))
+    return redirect(url_for('admin.admin'))
 
 
 @app.route("/admin/exporter")
@@ -2422,7 +2269,7 @@ def exporter_inventaire():
         return send_file(buffer, as_attachment=True, download_name='inventaire_complet.xlsx', mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     
     flash("Format d'exportation non valide.","error")
-    return redirect(url_for('admin'))
+    return redirect(url_for('admin.admin'))
 
 def generer_inventaire_pdf(data):
     pdf = PDFWithFooter()

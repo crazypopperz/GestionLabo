@@ -4,10 +4,10 @@
 
 # Imports depuis la bibliothèque standard
 import math
-from datetime import datetime, date, timedelta
-import uuid
 import os
 import sqlite3
+import uuid
+from datetime import datetime, date, timedelta
 
 # Imports depuis les bibliothèques tierces (Flask)
 from flask import (Blueprint, render_template, request, redirect, url_for,
