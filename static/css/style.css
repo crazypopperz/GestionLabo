@@ -98,6 +98,7 @@ h4 {
    ================================================================= */
 
 /* --- Boutons Unifiés --- */
+
 .btn-action {
   padding: 10px 20px;
   border-radius: 6px;
@@ -123,18 +124,6 @@ h4 {
 }
 
 /* --- Style pour les boutons secondaires --- */
-.btn-secondary {
-  background-color: var(--fond-element);
-  color: var(--texte-discret);
-  border-color: var(--couleur-bordure);
-}
-
-.btn-secondary:hover {
-  background-color: var(--couleur-perime-fond); /* Fond rouge très clair */
-  color: var(--couleur-erreur); /* Texte rouge foncé */
-  border-color: var(--couleur-erreur); /* Bordure rouge foncé */
-}
-
 .objet-table .btn-action {
   padding: 4px 12px;
   font-size: 0.8rem;
@@ -3340,4 +3329,36 @@ body:not(.page-admin-utilisateurs) .objet-table td:first-child {
 
 .modal-content.modal-warning .modal-icon {
   fill: var(--couleur-avertissement);
+}
+
+/* =================================================================
+   32. STYLES POUR LES BOUTONS D'ACTION SPÉCIFIQUES (Ex: Retirer/Supprimer)
+   ================================================================= */
+
+/* On cible les boutons qui ont la classe .btn-danger */
+.btn-danger {
+    /* On réutilise le style de base des boutons d'action */
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    
+    /* On applique les couleurs de danger que tu as définies */
+    background-color: var(--couleur-erreur);
+    color: var(--texte-inverse);
+    border: 1px solid var(--couleur-erreur);
+}
+
+.btn-danger:hover {
+    background-color: #c82333; /* Une version un peu plus foncée du rouge au survol */
+    border-color: #bd2130;
+    transform: translateY(-2px);
+    box-shadow: var(--ombre-moyenne);
 }

@@ -741,6 +741,26 @@ document.addEventListener("DOMContentLoaded", function () {
 	// =================================================================
 	// SECTION 14 : CONFIRMATION DE SUPPRESSION (UNIFIÉE ET SIMPLIFIÉE)
 	// =================================================================
+	document.querySelectorAll('.close-modal-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            // On trouve la modale parente la plus proche
+            const modalToClose = event.currentTarget.closest('.modal-overlay');
+            if (modalToClose) {
+                modalToClose.style.display = 'none';
+            }
+        });
+    });
+
+    // On gère aussi le clic sur le fond noir (l'overlay)
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (event) => {
+            // Si on a cliqué directement sur l'overlay (et pas sur son contenu)
+            if (event.target === overlay) {
+                overlay.style.display = 'none';
+            }
+        });
+    });
+	
 	document.addEventListener('click', function (e) {
 		
 		// On cherche si le clic vient d'un bouton qui doit ouvrir notre modale
