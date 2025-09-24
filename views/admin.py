@@ -10,6 +10,9 @@ from datetime import datetime, date, timedelta
 # Imports depuis les bibliothèques tierces (Flask, etc.)
 from flask import (Blueprint, render_template, request, redirect, url_for,
                    flash, session, jsonify, send_file)
+from fpdf import FPDF, XPos, YPos
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 

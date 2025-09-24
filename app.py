@@ -389,10 +389,6 @@ def reset_licence():
     return redirect(url_for('admin.admin'))
 
 
-
-
-
-
 @app.route("/budget/exporter")
 @admin_required
 def exporter_budget():
@@ -436,11 +432,7 @@ def exporter_budget():
 
     flash("Format d'exportation non valide.", "error")
     return redirect(url_for('budget'))
-
-
-# --- ROUTES POUR LA GESTION DES ÉCHÉANCES ---
-
-
+    
 
 # --- ROUTES POUR LES RAPPORTS ---
 @app.route("/objet/<int:objet_id>/telecharger_fds")
