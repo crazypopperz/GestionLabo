@@ -20,7 +20,7 @@
         {% endwith %}
 
         <nav class="breadcrumb-nav">
-            <a href="{{ url_for('gestion_kits') }}" class="breadcrumb-link">
+            <a href="{{ url_for('admin.gestion_kits') }}" class="breadcrumb-link">
                 <span class="breadcrumb-icon">
                     <svg class="page-title-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M280-80q-33 0-56.5-23.5T200-160v-480q0-33 23.5-56.5T280-720h400q33 0 56.5 23.5T760-640v480q0 33-23.5 56.5T680-80H280Zm0-80h400v-480H280v480Zm100-40q17 0 28.5-11.5T420-240q0-17-11.5-28.5T380-280q-17 0-28.5 11.5T340-240q0 17 11.5 28.5T380-200Zm200 0q17 0 28.5-11.5T620-240q0-17-11.5-28.5T580-280q-17 0-28.5 11.5T540-240q0 17 11.5 28.5T580-200ZM480-320q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM280-640v480-480Z"/></svg>
                 </span>
@@ -35,7 +35,7 @@
             <div class="details-card">
                 <h3 class="management-header">Objets dans le kit "{{ kit.nom }}"</h3>
                 {% if objets_in_kit %}
-                <form method="post" action="{{ url_for('modifier_kit', kit_id=kit.id) }}">
+                <form method="post" action="{{ url_for('admin.modifier_kit', kit_id=kit.id) }}">
 				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <table class="objet-table">
                         <thead><tr><th>Nom</th><th>Quantité dans le kit</th><th>Action</th></tr></thead>
@@ -45,7 +45,11 @@
                                 <td>{{ objet.nom }} <span class="text-discret">({{ objet.stock_disponible }} en stock)</span></td>
                                 <td><input type="number" name="quantite_{{ objet.id }}" value="{{ objet.quantite }}" class="input-small" min="1" max="{{ objet.stock_disponible }}"></td>
                                 <td>
-                                    <a href="{{ url_for('retirer_objet_kit', kit_objet_id=objet.id) }}" class="btn-action btn-danger btn-small" onclick="return confirm('Êtes-vous sûr de vouloir retirer cet objet du kit ?');">Retirer</a>
+									<button type="button" class="btn-danger btn-open-danger-modal"
+											data-action="{{ url_for('admin.retirer_objet_kit', kit_objet_id=objet.id) }}"
+											data-message="Êtes-vous sûr de vouloir retirer cet objet du kit ?">
+										Retirer
+									</button>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -71,7 +75,7 @@
                         {% for objet in objets_disponibles %}
                             <tr>
                                 <td>{{ objet.nom }} <span class="text-discret">({{ objet.quantite }})</span></td>
-                                <form method="post" action="{{ url_for('modifier_kit', kit_id=kit.id) }}">
+                                <form method="post" action="{{ url_for('admin.modifier_kit', kit_id=kit.id) }}">
 								<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <input type="hidden" name="objet_id" value="{{ objet.id }}">
                                     <td><input type="number" name="quantite" value="1" class="input-small" min="1" max="{{ objet.quantite }}"></td>
@@ -86,5 +90,6 @@
         </div>
     </div>
     {% include 'footer.html' %}
+	{% include '_modale_danger.html' %}
 </body>
 </html>

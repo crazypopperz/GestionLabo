@@ -738,57 +738,60 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // =================================================================
-    // SECTION 14 : CONFIRMATION DE SUPPRESSION (UNIFIÉE)
-    // =================================================================
-    document.addEventListener('click', function (e) {
-        // Logique pour les armoires/catégories
-        const deleteInteractiveBtn = e.target.closest('.delete-form-interactive .delete-btn');
-        if (deleteInteractiveBtn) {
-            e.preventDefault();
-            const form = deleteInteractiveBtn.closest('.delete-form-interactive');
-            const itemName = form.dataset.itemName || 'cet élément';
-            const itemType = form.dataset.itemType || 'élément';
-            const modal = document.getElementById('danger-modal');
-            if (!modal) return;
-            const modalText = modal.querySelector('#danger-modal-text');
-            modalText.textContent = `Êtes-vous sûr de vouloir supprimer ${itemType === 'armoire' ? "l'armoire" : "la catégorie"} "${itemName}" ? Cette action est définitive.`;
-            modal.style.display = 'flex';
-            const confirmBtn = modal.querySelector('#danger-modal-confirm-btn');
-            
-            // Nettoyage de l'ancien écouteur
-            const newConfirmBtn = confirmBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+	// =================================================================
+	// SECTION 14 : CONFIRMATION DE SUPPRESSION (UNIFIÉE ET SIMPLIFIÉE)
+	// =================================================================
+	document.addEventListener('click', function (e) {
+		
+		// On cherche si le clic vient d'un bouton qui doit ouvrir notre modale
+		const openModalButton = e.target.closest('.btn-open-danger-modal, .delete-btn, .btn-delete-objet');
 
-            newConfirmBtn.onclick = () => {
-                form.submit();
-            };
-        }
+		if (openModalButton) {
+			e.preventDefault();
 
-        const deleteObjetBtn = e.target.closest('.btn-delete-objet');
-        if (deleteObjetBtn) {
-            e.preventDefault();
-            const form = deleteObjetBtn.closest('form');
-            const objetNom = deleteObjetBtn.dataset.objetNom;
-            const modal = document.getElementById('danger-modal');
-            if (!modal) return;
-            
-            const modalText = modal.querySelector('#danger-modal-text');
-            modalText.innerHTML = `Êtes-vous sûr de vouloir supprimer l'objet <strong>'${objetNom}'</strong> ?<br>Cette action est irréversible.`;
-            
-            const confirmBtn = modal.querySelector('#danger-modal-confirm-btn');
-            
-            // Nettoyage de l'ancien écouteur
-            const newConfirmBtn = confirmBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+			const modal = document.getElementById('danger-modal');
+			if (!modal) return;
 
-            newConfirmBtn.onclick = () => {
-                form.submit();
-            };
-            
-            modal.style.display = 'flex';
-        }
-    });
+			// --- Récupération des informations ---
+			let message = "Êtes-vous sûr de vouloir effectuer cette action ?";
+			let actionUrl = "#";
+			
+			// Cas 1 : Bouton générique avec data-attributs (notre nouvelle méthode)
+			if (openModalButton.matches('.btn-open-danger-modal')) {
+				message = openModalButton.dataset.message;
+				actionUrl = openModalButton.dataset.action;
+			} 
+			// Cas 2 : Formulaire de suppression d'objet
+			else if (openModalButton.matches('.btn-delete-objet')) {
+				const form = openModalButton.closest('form');
+				message = `Êtes-vous sûr de vouloir supprimer l'objet <strong>'${openModalButton.dataset.objetNom}'</strong> ?<br>Cette action est irréversible.`;
+				actionUrl = form.action;
+			}
+			// Cas 3 : Formulaire armoire/catégorie
+			else if (openModalButton.matches('.delete-btn')) {
+				const form = openModalButton.closest('.delete-form-interactive');
+				const itemName = form.dataset.itemName || 'cet élément';
+				const itemType = form.dataset.itemType || 'élément';
+				message = `Êtes-vous sûr de vouloir supprimer ${itemType === 'armoire' ? "l'armoire" : "la catégorie"} "${itemName}" ? Cette action est définitive.`;
+				actionUrl = form.action;
+			}
+
+			// --- Mise à jour de la modale ---
+			const modalText = modal.querySelector('#danger-modal-text');
+			const modalForm = modal.querySelector('#danger-modal-form');
+
+			if (modalText) {
+				// On utilise innerHTML pour permettre les balises <strong> etc.
+				modalText.innerHTML = message;
+			}
+			if (modalForm) {
+				modalForm.action = actionUrl;
+			}
+
+			// Affichage de la modale
+			modal.style.display = 'flex';
+		}
+	});
 
     // =================================================================
     // SECTION 15 : COPIE DE L'ID D'INSTANCE
